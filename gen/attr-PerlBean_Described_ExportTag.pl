@@ -10,11 +10,11 @@ push(@::bean_desc, {
 C<PerlBean::Described::ExportTag> describes export tags for pod generation in C<PerlBean> objects.
 EOF
         short_description => 'Tag description',
-        synopsis => "TODO.\n",
+        synopsis => "TODO\n",
     },
     attr_opt => [
         {
-            attribute_name => 'export_tag_name',
+            method_factory_name => 'export_tag_name',
             short_description => 'tag\'s name',
             type => 'SINGLE',
             mandatory => 1,

@@ -2,13 +2,15 @@ use strict;
 use PerlBean;
 use PerlBean::Attribute::Factory;
 
-my $bean = PerlBean->new();
+my $bean = PerlBean->new( {
+    package => 'MyPackage',
+} );
 my $factory = PerlBean::Attribute::Factory->new();
 my $attr = $factory->create_attribute( {
-    attribute_name => 'true',
+    method_factory_name => 'true',
     short_description => 'something is true',
 } );
-$bean->add_attribute($attr);
+$bean->add_method_factory($attr);
 
 use IO::File;
 -d 'tmp' || mkdir('tmp');

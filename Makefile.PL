@@ -1,4 +1,4 @@
-# $Revision: 0.8 $
+# $Revision: 1.0 $
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
@@ -12,6 +12,6 @@ WriteMakefile(
 	(ABSTRACT_FROM => 'lib/PerlBean.pm', # retrieve abstract from module
 	AUTHOR => 'Vincenzo Zocca <Vincenzo@Zocca.com>') : ()),
 	clean => {
-		FILES => 'auto tmp pod-all sdiff-all',
+		FILES => 'auto tmp diff-all pod-all sdiff-all',
 	},
 );

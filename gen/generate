@@ -58,7 +58,7 @@ foreach my $bean_desc (@::bean_desc) {
     # Add attributes to bean
     foreach my $attr_opt ( @{ $bean_desc->{attr_opt} } ) {
         my $attr = $factory->create_attribute($attr_opt);
-        $bean->add_attribute($attr);
+        $bean->add_method_factory($attr);
     }
 
     # Add methods to bean

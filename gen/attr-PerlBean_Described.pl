@@ -13,7 +13,7 @@ EOF
     },
     attr_opt => [
         {
-            attribute_name => 'description',
+            method_factory_name => 'description',
             short_description => 'the description',
         },
     ],

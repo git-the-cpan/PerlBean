@@ -9,7 +9,7 @@ use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -43,10 +43,6 @@ Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Attribute>> 
 
 =over
 
-=item B<C<attribute_name>>
-
-Passed to L<set_attribute_name()>. Mandatory option.
-
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
@@ -66,10 +62,6 @@ Passed to L<set_mandatory()>. Defaults to B<0>.
 =item B<C<method_base>>
 
 Passed to L<set_method_base()>.
-
-=item B<C<perl_bean>>
-
-Passed to L<set_perl_bean()>.
 
 =item B<C<short_description>>
 
@@ -103,135 +95,233 @@ Passed to L<set_allow_value()>. Must be an C<ARRAY> reference.
 
 =back
 
+Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Method::Factory>> may include:
+
+=over
+
+=item B<C<method_factory_name>>
+
+Passed to L<set_method_factory_name()>. Mandatory option.
+
+=item B<C<perl_bean>>
+
+Passed to L<set_perl_bean()>.
+
+=back
+
 =back
 
 =head1 METHODS
 
 =over
 
-=item get_overloaded_attribute()
+=item add_allow_isa(ARRAY)
 
-This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned.
+This method is inherited from package C<PerlBean::Attribute::Single>. Add additional values on the list of allowed classes. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurrences of the same element cause the last occurrence to be inserted. On error an exception C<Error::Simple> is thrown.
+
+=item add_allow_ref(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Add additional values on the list of allowed references. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurrences of the same element cause the last occurrence to be inserted. On error an exception C<Error::Simple> is thrown.
+
+=item add_allow_rx(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Add additional values on the list of allow regular expressions. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurrences of the same element cause the last occurrence to be inserted. On error an exception C<Error::Simple> is thrown.
+
+=item add_allow_value(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Add additional values on allowed values. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurrences of the same element cause the last occurrence to be inserted. On error an exception C<Error::Simple> is thrown.
+
+=item create_methods()
+
+This is an interface method. Returns a list of C<PerlBean::Attribute::Method> objects.
+
+=item delete_allow_isa(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Delete elements from the list of allowed classes. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item delete_allow_ref(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Delete elements from the list of allowed references. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item delete_allow_rx(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Delete elements from the list of allow regular expressions. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item delete_allow_value(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Delete elements from allowed values. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item exists_allow_isa(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns the count of items in C<ARRAY> that are in the list of allowed classes.
+
+=item exists_allow_ref(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns the count of items in C<ARRAY> that are in the list of allowed references.
+
+=item exists_allow_rx(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns the count of items in C<ARRAY> that are in the list of allow regular expressions.
+
+=item exists_allow_value(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns the count of items in C<ARRAY> that are in allowed values.
+
+=item get_default_value()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns attribute default value.
+
+=item get_exception_class()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns the class to throw when an exception occurs.
+
+=item get_method_base()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns the method base name.
+
+=item get_method_factory_name()
+
+This method is inherited from package C<PerlBean::Method::Factory>. Returns method factory's name.
 
 =item get_package()
 
-This method is inherited from package C<'PerlBean::Attribute'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+This method is inherited from package C<PerlBean::Attribute>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
 
 =item get_package_us()
 
-This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_package()> and replaces C<:+> with C <_>.
+This method is inherited from package C<PerlBean::Attribute>. Calls C<get_package()> and replaces C<:+> with C <_>.
+
+=item get_perl_bean()
+
+This method is inherited from package C<PerlBean::Method::Factory>. Returns the PerlBean to which this method factory belongs.
+
+=item get_short_description()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns the attribute description.
+
+=item is_allow_empty()
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns whether the attribute is allowed to be empty or not.
+
+=item is_documented()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns whether the attribute is documented or not.
+
+=item is_mandatory()
+
+This method is inherited from package C<PerlBean::Attribute>. Returns whether the attribute is mandatory for construction or not.
+
+=item mk_doc_clauses()
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns a string containing the documentation for the clauses to which the contents the contents of the attribute must adhere.
+
+=item set_allow_empty(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. State that the attribute is allowed to be empty. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item set_allow_isa(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Set the list of allowed classes absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurrences of the same element yield in the last occurring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+
+=item set_allow_ref(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Set the list of allowed references absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurrences of the same element yield in the last occurring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+
+=item set_allow_rx(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Set the list of allow regular expressions absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurrences of the same element yield in the last occurring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+
+=item set_allow_value(ARRAY)
+
+This method is inherited from package C<PerlBean::Attribute::Single>. Set allowed values absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurrences of the same element yield in the last occurring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+
+=item set_default_value(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. Set attribute default value. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_documented(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. State that the attribute is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item set_exception_class(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. Set the class to throw when an exception occurs. C<VALUE> is the value. Default value at initialization is C<Error::Simple>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+
+=item set_mandatory(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. State that the attribute is mandatory for construction. C<VALUE> is the value. Default value at initialization is C<0>. On error an exception C<Error::Simple> is thrown.
+
+=item set_method_base(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. Set the method base name. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_method_factory_name(VALUE)
+
+This method is inherited from package C<PerlBean::Method::Factory>. Set method factory's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must match regular expression:
+
+=over
+
+=item ^\w+$
+
+=back
+
+=back
+
+=item set_perl_bean(VALUE)
+
+This method is inherited from package C<PerlBean::Method::Factory>. Set the PerlBean to which this method factory belongs. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must be a (sub)class of:
+
+=over
+
+=item PerlBean
+
+=back
+
+=back
+
+=item set_short_description(VALUE)
+
+This method is inherited from package C<PerlBean::Attribute>. Set the attribute description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
 =item type()
 
-This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+This method is inherited from package C<PerlBean::Attribute>. Determines and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_allow_isa()
+=item values_allow_isa()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_ISA> line string for the attribute.
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns an C<ARRAY> containing all values of the list of allowed classes.
 
-=item write_allow_ref()
+=item values_allow_ref()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_REF> line string for the attribute.
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns an C<ARRAY> containing all values of the list of allowed references.
 
-=item write_allow_rx()
+=item values_allow_rx()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_RX> line string for the attribute.
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns an C<ARRAY> containing all values of the list of allow regular expressions.
 
-=item write_allow_value()
+=item values_allow_value()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_VALUE> line string for the attribute.
+This method is inherited from package C<PerlBean::Attribute::Single>. Returns an C<ARRAY> containing all values of allowed values.
+
+=item write_constructor_option_code()
+
+This method is overloaded from package C<PerlBean::Attribute::Single>. Writes constructor code for the attribute option.
+
+=item write_constructor_option_doc()
+
+This method is overloaded from package C<PerlBean::Attribute::Single>. Writes constructor documentation for the attribute option.
 
 =item write_default_value()
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
-
-=item write_doc_clauses(FILEHANDLE)
-
-This method is inherited from package C<'PerlBean::Attribute'>. Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item write_doc_inherit_methods(FILEHANDLE)
-
-This is an interface method. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item write_doc_init(FILEHANDLE)
-
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for C<_initialize()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item write_doc_methods(FILEHANDLE)
-
-This is an interface method. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item write_methods(FILEHANDLE)
-
-This is an interface method. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item write_opt_init(FILEHANDLE)
-
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<_initialize()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=back
-
-=head1 INHERITED METHODS FROM PerlBean::Attribute
-
-=over
-
-=item To access attribute named B<C<attribute_name>>:
-
-set_attribute_name(), get_attribute_name()
-
-=item To access attribute named B<C<default_value>>:
-
-set_default_value(), get_default_value()
-
-=item To access attribute named B<C<documented>>:
-
-set_documented(), is_documented()
-
-=item To access attribute named B<C<exception_class>>:
-
-set_exception_class(), get_exception_class()
-
-=item To access attribute named B<C<mandatory>>:
-
-set_mandatory(), is_mandatory()
-
-=item To access attribute named B<C<method_base>>:
-
-set_method_base(), get_method_base()
-
-=item To access attribute named B<C<perl_bean>>:
-
-set_perl_bean(), get_perl_bean()
-
-=item To access attribute named B<C<short_description>>:
-
-set_short_description(), get_short_description()
-
-=back
-
-=head1 INHERITED METHODS FROM PerlBean::Attribute::Single
-
-=over
-
-=item To access attribute named B<C<allow_empty>>:
-
-set_allow_empty(), is_allow_empty()
-
-=item To access attribute named B<C<allow_isa>>:
-
-set_allow_isa(), add_allow_isa(), delete_allow_isa(), exists_allow_isa(), values_allow_isa()
-
-=item To access attribute named B<C<allow_ref>>:
-
-set_allow_ref(), add_allow_ref(), delete_allow_ref(), exists_allow_ref(), values_allow_ref()
-
-=item To access attribute named B<C<allow_rx>>:
-
-set_allow_rx(), add_allow_rx(), delete_allow_rx(), exists_allow_rx(), values_allow_rx()
-
-=item To access attribute named B<C<allow_value>>:
-
-set_allow_value(), add_allow_value(), delete_allow_value(), exists_allow_value(), values_allow_value()
+This method is overloaded from package C<PerlBean::Attribute::Single>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =back
 
@@ -256,6 +346,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -266,6 +357,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: November 2002
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -297,71 +389,169 @@ Boston, MA 02111-1307 USA
 
 =cut
 
-sub write_default_value {
-    my $self = shift;
-
-    defined( $self->get_default_value() ) || return('');
-
-    my $an = $self->esc_aq( $self->get_attribute_name() );
-    my $dv = $self->esc_aq( @{ $self->get_default_value() } );
-
-    return( "${IND}$an${AO}=>${AO}[$dv],\n" );
+sub create_methods {
+    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::create_methods, call this method in a subclass that has implemented it.");
 }
 
-sub write_doc_inherit_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_doc_inherit_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_doc_init {
+sub mk_doc_clauses_allow_isa {
     my $self = shift;
-    my $fh = shift;
 
-    $self->is_documented() || return;
+    # Return empty string if no values_allow_isa
+    return('') if ( ! scalar( $self->values_allow_isa() ) );
 
-    my $an = $self->get_attribute_name();
-    my $mb = $self->get_method_base();
-    my $mand = $self->is_mandatory() ? ' Mandatory option.' : '';
-    my $multi = ( $self->isa('PerlBean::Attribute::Multi') ) ? ' Must be an C<ARRAY> reference.' : '';
-    my $def = '';
-    if ( defined( $self->get_default_value() ) ) {
-        my $list = join( '> , B<', $self->esc_aq( @{ $self->get_default_value() } ) );
-        $def = ' Defaults to B<[> B<' . $list . '> B<]>.';
-    }
+    # Make clauses head
+    my $clauses = <<EOF;
+\=item The values in C<ARRAY> must be a (sub)class of:
 
-    $fh->print(<<EOF);
-\=item B<C<$an>>
-
-Passed to L<set$mb${BFP}()>.${multi}${mand}${def}
+\=over
 
 EOF
+
+    # Make clauses body
+    foreach my $class ( sort( $self->values_allow_isa() ) ) {
+        $clauses .= <<EOF;
+\=item ${class}
+
+EOF
+    }
+
+    # Make clauses tail
+    $clauses .= <<EOF;
+\=back
+
+EOF
+
+    # Return clauses
+    return($clauses);
 }
 
-sub write_doc_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_doc_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_opt_init {
+sub mk_doc_clauses_allow_ref {
     my $self = shift;
-    my $fh = shift;
 
-    my $an = $self->get_attribute_name();
+    # Return empty string if no values_allow_ref
+    return('') if ( ! scalar( $self->values_allow_ref() ) );
+
+    # Make $or for other clauses that apply and that are written before these
+    # clauses
+    my $or = scalar( $self->values_allow_isa() ) ? 'Or, the' : 'The';
+
+    # Make clauses head
+    my $clauses = <<EOF;
+\=item ${or} values in C<ARRAY> must be a reference of:
+
+\=over
+
+EOF
+
+    # Make clauses body
+    foreach my $class ( sort( $self->values_allow_ref() ) ) {
+        $clauses .= <<EOF;
+\=item ${class}
+
+EOF
+    }
+
+    # Make clauses tail
+    $clauses .= <<EOF;
+\=back
+
+EOF
+
+    # Return clauses
+    return($clauses);
+}
+
+sub mk_doc_clauses_allow_rx {
+    my $self = shift;
+
+    # Return empty string if no values_allow_rx
+    return('') if ( ! scalar( $self->values_allow_rx() ) );
+
+    # Make $or for other clauses that apply and that are written before these
+    # clauses
+    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() ) ?
+        'Or, the' : 'The';
+
+    # Make clauses head
+    my $clauses = <<EOF;
+\=item ${or} values in C<ARRAY> must match regular expression:
+
+\=over
+
+EOF
+
+    # Make clauses body
+    foreach my $class ( sort( $self->values_allow_rx() ) ) {
+        $clauses .= <<EOF;
+\=item ${class}
+
+EOF
+    }
+
+    # Make clauses tail
+    $clauses .= <<EOF;
+\=back
+
+EOF
+
+    # Return clauses
+    return($clauses);
+}
+
+sub mk_doc_clauses_allow_value {
+    my $self = shift;
+
+    # Return empty string if no values_allow_value
+    return('') if ( ! scalar( $self->values_allow_value() ) );
+
+    # Make $or for other clauses that apply and that are written before these
+    # clauses
+    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() ||
+        $self->values_allow_rx() ) ? 'Or, the' : 'The';
+
+    # Make clauses head
+    my $clauses = <<EOF;
+\=item ${or} values in C<ARRAY> must be a one of:
+
+\=over
+
+EOF
+
+    # Make clauses body
+    foreach my $val ( sort( $self->values_allow_value() ) ) {
+        $clauses .= <<EOF;
+\=item ${val}
+
+EOF
+    }
+
+    # Make clauses tail
+    $clauses .= <<EOF;
+\=back
+
+EOF
+
+    # Return clauses
+    return($clauses);
+}
+
+sub write_constructor_option_code {
+    my $self = shift;
+
+    my $an = $self->get_method_factory_name();
     my $mb = $self->get_method_base();
     my $ec = $self->get_exception_class();
     my $pkg = $self->get_perl_bean()->get_package();
 
     # Comment
-    $fh->print( "${IND}# $an, ", $self->type() );
-    $self->is_mandatory() && $fh->print(', mandatory');
-    defined( $self->get_default_value() ) && $fh->print(', with default value');
-    $fh->print("\n");
+    my $code = "${IND}# $an, " . $self->type();
+    $code .= $self->is_mandatory() ? ', mandatory' : '';
+    $code .= defined( $self->get_default_value() ) ? ', with default value' : '';
+    $code .= "\n";
 
     # is_mandatory check
     if ( $self->is_mandatory() ) {
-        $fh->print(<<EOF);
+        $code .= <<EOF;
 ${IND}exists${BFP}(${ACS}\$opt->{$an}${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
 EOF
     }
@@ -369,144 +559,73 @@ EOF
     my $pre = '';
     if ( ! $self->is_mandatory() ) {
         $pre .= "${IND}";
-        $fh->print(<<EOF);
+        $code .= <<EOF;
 ${IND}if${BCP}(${ACS}exists${BFP}(${ACS}\$opt->{$an}${ACS})${ACS})${PBOC[1]}{
 EOF
     }
-    $fh->print(<<EOF);
+    $code .= <<EOF;
 ${IND}${pre}ref${BFP}(${ACS}\$opt->{$an}${ACS})${AO}eq${AO}'ARRAY'${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::_initialize, specified value for option '$an' must be an 'ARRAY' reference.");
 ${IND}${pre}\$self->set$mb${BFP}(${ACS}\@{${ACS}\$opt->{$an}${ACS}}${ACS});
 EOF
     # default value
     if ( ! $self->is_mandatory() ) {
         if ( defined( $self->get_default_value() ) ) {
-            $fh->print(<<EOF);
+            $code .= <<EOF;
 ${IND}}${PBCC[1]}else${PBOC[1]}{
 ${IND}${IND}\$self->set$mb${BFP}(${ACS}\@{${ACS}\$DEFAULT_VALUE{$an}${ACS}}${ACS});
 EOF
         }
         else {
-            $fh->print(<<EOF);
+            $code .= <<EOF;
 ${IND}}${PBCC[1]}else${PBOC[1]}{
 ${IND}${IND}\$self->set$mb${BFP}();
 EOF
             }
         }
     if ( ! $self->is_mandatory()) {
-        $fh->print(<<EOF);
+        $code .= <<EOF;
 ${IND}}
 EOF
     }
 
     # Empty line
-    $fh->print("\n");
+    $code .= "\n";
+
+    return($code);
 }
 
-
-sub write_doc_clauses_allow_isa {
+sub write_constructor_option_doc {
     my $self = shift;
-    my $fh = shift;
 
-    return if ( ! scalar( $self->values_allow_isa() ) );
+    # Do nothing if not documented
+    $self->is_documented() || return('');
 
-    $fh->print(<<EOF);
-\=item The values in C<ARRAY> must be a (sub)class of:
-
-\=over
-
-EOF
-
-    foreach my $class ( sort( $self->values_allow_isa() ) ) {
-        $fh->print(<<EOF);
-\=item ${class}
-
-EOF
+    my $an = $self->get_method_factory_name();
+    my $mb = $self->get_method_base();
+    my $mand = $self->is_mandatory() ? ' Mandatory option.' : '';
+    my $multi = ( $self->isa('PerlBean::Attribute::Multi') ) ? ' Must be an C<ARRAY> reference.' : '';
+    my $def = '';
+    if ( defined( $self->get_default_value() ) ) {
+        my $list = join( '> , B<', $self->_esc_aq( @{ $self->get_default_value() } ) );
+        $def = ' Defaults to B<[> B<' . $list . '> B<]>.';
     }
 
-    $fh->print(<<EOF);
-\=back
+    return(<<EOF);
 
-EOF
-}
+\=item B<C<$an>>
 
-sub write_doc_clauses_allow_ref {
-    my $self = shift;
-    my $fh = shift;
-
-    return if ( ! scalar( $self->values_allow_ref() ) );
-    my $or = scalar( $self->values_allow_isa() ) ? 'Or, the' : 'The';
-
-    $fh->print(<<EOF);
-\=item ${or} values in C<ARRAY> must be a reference of:
-
-\=over
-
-EOF
-
-    foreach my $class ( sort( $self->values_allow_ref() ) ) {
-        $fh->print(<<EOF);
-\=item ${class}
-
-EOF
-    }
-
-    $fh->print(<<EOF);
-\=back
-
+Passed to L<set$mb${BFP}()>.${multi}${mand}${def}
 EOF
 }
 
-sub write_doc_clauses_allow_rx {
+sub write_default_value {
     my $self = shift;
-    my $fh = shift;
 
-    return if ( ! scalar( $self->values_allow_rx() ) );
-    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() ) ? 'Or, the' : 'The';
+    defined( $self->get_default_value() ) || return('');
 
-    $fh->print(<<EOF);
-\=item ${or} values in C<ARRAY> must match regular expression:
+    my $an = $self->_esc_aq( $self->get_method_factory_name() );
+    my $dv = $self->_esc_aq( @{ $self->get_default_value() } );
 
-\=over
-
-EOF
-
-    foreach my $class ( sort( $self->values_allow_rx() ) ) {
-        $fh->print(<<EOF);
-\=item ${class}
-
-EOF
-    }
-
-    $fh->print(<<EOF);
-\=back
-
-EOF
-}
-
-sub write_doc_clauses_allow_value {
-    my $self = shift;
-    my $fh = shift;
-
-    return if ( ! scalar( $self->values_allow_value() ) );
-    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() || $self->values_allow_rx() ) ? 'Or, the' : 'The';
-
-    $fh->print(<<EOF);
-\=item ${or} values in C<ARRAY> must be a one of:
-
-\=over
-
-EOF
-
-    foreach my $val ( sort( $self->values_allow_value() ) ) {
-        $fh->print(<<EOF);
-\=item ${val}
-
-EOF
-    }
-
-    $fh->print(<<EOF);
-\=back
-
-EOF
+    return( "${IND}$an${AO}=>${AO}\[$dv],\n" );
 }
 

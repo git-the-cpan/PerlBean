@@ -7,7 +7,7 @@ push(@::bean_desc, {
         use_perl_version => 5.005,
         base => [ qw(PerlBean::Method) ],
         description => <<EOF,
-C<PerlBean::Method> class for bean constructor method information. This is a subclass from C<PerlBean::Method> with the purpose to diferenciate beteen plain methods and constructors.
+C<PerlBean::Method> class for bean constructor method information. This is a subclass from C<PerlBean::Method> with the purpose to differentiate between plain methods and constructors.
 EOF
         short_description => 'contains bean constructor method information',
 #        synopsis => '',

@@ -6,11 +6,12 @@ Vincenzo Zocca
 
 =item Creation
 
-Sun Feb 16 20:29:26 CET 2003
+Sun Feb 16 20:29:26 CEST 2003
 
 =item Update
 
-Mon Mar 24 20:59:17 CET 2003
+Thu Sep  4 06:42:32 CEST 2003
+
 
 =back
 
@@ -37,7 +38,7 @@ methods. These classes can be put into a bean collection and the Perl code for
 the classes is generated. The basic class documentation and the documentation
 of the attribute and method inheritance is generated.
 
-At the time of writing (Sun Feb  2 11:38:09 CET 2003), this package has already
+At the time of writing (Thu Sep  4 06:42:32 CEST 2003), this package has already
 proved itself very useful for my professional purposes. I can code more in
 less time, I produce higher quality code, I find it easier to keep a conceptual
 overview of my projects and I take better advantage of OO paradigm altogether.
@@ -64,33 +65,33 @@ Its descriptions, attributes, methods etc...
 
 A I<PerlBean Collection> is a collection of C<PerlBean>s.
 
-For this tutorial we'll develop a simple class hierarchy for geometrical shapes.The I<PerlBean Collection> will consist of the abstract C<Shape>, the implementations of classes C<Square> and C<Circle> and the C<Rectangle> subclass of C<Square>. This class hierarchy isn't exactly rocket science -it isn't even necessarily logical- but it serves the tutorial purpose.
+For this tutorial we'll develop a simple class hierarchy for geometrical shapes. The I<PerlBean Collection> will consist of the abstract C<Shape>, the implementations of classes C<Square> and C<Circle> and the C<Rectangle> subclass of C<Square>. This class hierarchy isn't exactly rocket science -it isn't even necessarily logical- but it serves the tutorial purpose.
 
 =head2 2.1 Class diagram for shapes
 
                 +------------+
                 |   Shape    |
-       + - - - -| (abstract) |- - - - +
+       + - - - -+ (abstract) +- - - - +
        |        |------------|        |
                 |------------|        
        |        |   area()   |        |
       / \       +------------+       / \
-     +---+                          +---+
+     +-+-+                          +---+
        |                              |
                                        
        |                              |
- +------------+               +------------+
+ +-----+------+               +-------+----+
  |   Square   |               |   Circle   |
  |------------|               |------------|
  |   width    |               |   radius   |
  |------------|               |------------|
  |   area()   |               |   area()   |
- +------------+               +------------+
+ +-----+------+               +------------+
        |
       / \
      +---+
        |
- +------------+
+ +-----+------+
  | Rectangle  |
  |------------|
  |   width    |
@@ -117,7 +118,15 @@ First, a C<PerlBean::Collection> is created which is used throughout the program
 
 =head3 2.2.2 PerlBean attribute factory
 
-Then, a C<PerlBean::Attribute::Factory> is created which is used to create attributes throughout the program.
+Then, a C<PerlBean::Attribute::Factory> is created which is used to create attributes (C<PerlBean::Attribute(*)> objects) throughout the program.
+
+=over
+
+=item (*)
+
+C<PerlBean::Attribute> objects are an implementation of C<PerlBean::Method::Factory>. That is, C<PerlBean::Attribute> objects on their turn create C<PerlBean::Method> objects.
+
+=back
 
  use PerlBean::Attribute::Factory;
  my $fact = PerlBean::Attribute::Factory->new();
@@ -158,6 +167,7 @@ Now the C<Circle> C<PerlBean> is created and added to the collection. The creati
      package => 'Circle',
      base => [ qw( Shape ) ],
      short_description => 'circle shape',
+     description => "circle shape\n",
      abstract => 'circle shape',
      autoloaded => 0,
  } );
@@ -168,27 +178,27 @@ Now the C<Circle> C<PerlBean> is created and added to the collection. The creati
 A C<radius> attribute is created and added to the C<Circle> C<PerlBean>. At creation the attribute name, a short description and a regular expression to which the attribute's values must match (C<^\d*(\.\d+)?$>) are specified. The documentation of C<PerlBean::Attribute::Factory> has all the details for this part of the process.
 
  my $radius = $fact->create_attribute( {
-     attribute_name => 'radius',
+     method_factory_name => 'radius',
      short_description => 'the shape\'s radius',
      allow_rx => [ qw( ^\d*(\.\d+)?$ ) ],
  } );
- $circle->add_attribute( $radius );
+ $circle->add_method_factory( $radius );
 
 =head3 2.2.7 C<Circle> C<area()> method
 
 The implementation of method C<area()> is created and added to the C<Circle> C<PerlBean>.  At creation the method name and its body are specified. The description is copied from the interface when the code is generated.
 
-# Make the Circle area() method add it to the Circle PerlBean
-use PerlBean::Method;
-my $area_circle = PerlBean::Method->new( {
-    method_name => 'area',
-    body => <<EOF,
-    my \$self = shift;
-
-    return( 2 * 3.1415926 * \$self->get_radius() );
-EOF
-} );
-$circle->add_method( $area_circle );
+ # Make the Circle area() method add it to the Circle PerlBean
+ use PerlBean::Method;
+ my $area_circle = PerlBean::Method->new( {
+     method_name => 'area',
+     body => <<EOF,
+     my \$self = shift;
+ 
+     return( 2 * 3.1415926 * \$self->get_radius() );
+ EOF
+ } );
+ $circle->add_method( $area_circle );
 
 =head3 2.2.8 C<Square> with a C<width> attribute and an C<area()> method
 
@@ -204,11 +214,11 @@ This is much like 2.2.5 - 2.2.7 but then for C<Square>.
  $coll->add_perl_bean( $square );
 
  my $width = $fact->create_attribute( {
-     attribute_name => 'width',
+     method_factory_name => 'width',
      short_description => 'the shape\'s width',
      allow_rx => [ qw( ^\d*(\.\d+)?$ ) ],
  } );
- $square->add_attribute( $width );
+ $square->add_method_factory( $width );
 
  use PerlBean::Method;
  my $area_square = PerlBean::Method->new( {
@@ -239,11 +249,11 @@ The C<Rectangle> PerlBean which is a subclass of C<Square>.
 The C<height> attribute.
 
  my $height = $fact->create_attribute( {
-     attribute_name => 'height',
+     method_factory_name => 'height',
      short_description => 'the shape\'s height',
      allow_rx => [ qw( ^\d*(\.\d+)?$ ) ],
  } );
- $rectangle->add_attribute( $height );
+ $rectangle->add_method_factory( $height );
 
 The C<area()> method
 
@@ -363,7 +373,7 @@ The examples in the previous sections had C<PerlBean::Method> objects. Well, the
 
 =head1 5 A FEW WORDS ON INHERITANCE
 
-PerlBean takes inheritance into account when generating documentation and code. As Perl supports multiple , so does PerlBean.
+PerlBean takes inheritance into account when generating documentation and code. As Perl supports multiple inheritance, so does PerlBean.
 
 Descriptions of methods and attributes are passed from superclass to subclass in a -hopefully- intuitive manner.
 
@@ -373,7 +383,8 @@ For interface methods a default method is implemented in the class where they ar
 
 =head1 6 STYLE
 
-By default style as defined in C<perlstyle>. It can however be changed at will.
+The default style is as defined in C<perlstyle>. It can however be changed at
+will.
 
 The style is controlled though the C<PerlBean::Style> modules. The singleton instance of C<PerlBean::Style> is used to format the generated code.
 
@@ -398,7 +409,7 @@ The code to make the style change looks like:
  
  my $style = PerlBean::Style->instance();
  
- $style->set_attribute_name_to_method_base_filter(\&mbase_flt);
+ $style->set_method_factory_name_to_method_base_filter(\&mbase_flt);
  $style->set_method_operation_filter(\&op_ftl);
  $style->set_str_pre_block_open_curl("\n__IND_BLOCK__");
  $style->set_str_between_function_and_parenthesis(' ');
@@ -422,7 +433,7 @@ B<NOTE:> The C<PerlBean::Method> objects are B<NOT> affected by C<PerlBean::Styl
 
 The C<PerlBean::Style> instance is obtained through the C<instance()> method.
 
-C<set_attribute_name_to_method_base_filter()> allows to set the subroutine that converts an attribute name to the method base.
+C<set_method_factory_name_to_method_base_filter()> allows to set the subroutine that converts an attribute name to the method base.
 
 C<set_method_operation_filter()> allows to set the subroutine that formats the method operation.
 

@@ -1,13 +1,2 @@
-$Revision: 0.8 $
-- Documentation review (again and again and again)
-- Attribute that isn't changable after first set call to it
-- Allowed value 'undef'
-- A better system to allow/deny values:
-  - with deny counterparts
-  - uses less (just one) global variables
-  - documents better
-- A better system for default values:
-  - supports static assignements
-  - supports dynamic assignements
-  - documents better
-- 
+$Revision: 1.0 $
+See the BUGS section in the PerlBean man page

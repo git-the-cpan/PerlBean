@@ -29,14 +29,15 @@ our %ALLOW_RX = (
 our %ALLOW_VALUE = (
 );
 
-# Used by _value_is_allowed
+# Used by _initialize
 our %DEFAULT_VALUE = (
     'documented' => 1,
     'exception_class' => 'Error::Simple',
+    'implemented' => 1,
 );
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -86,6 +87,10 @@ Passed to L<set_documented()>. Defaults to B<1>.
 
 Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
 
+=item B<C<implemented>>
+
+Passed to L<set_implemented()>. Defaults to B<1>.
+
 =item B<C<interface>>
 
 Passed to L<set_interface()>.
@@ -102,6 +107,10 @@ Passed to L<set_parameter_description()>.
 
 Passed to L<set_perl_bean()>.
 
+=item B<C<volatile>>
+
+Passed to L<set_volatile()>.
+
 =back
 
 =back
@@ -110,21 +119,49 @@ Passed to L<set_perl_bean()>.
 
 =over
 
+=item get_body()
+
+Returns the method's body.
+
+=item get_description()
+
+Returns the method description.
+
+=item get_exception_class()
+
+Returns the class to throw in eventual interface implementations.
+
+=item get_method_name()
+
+Returns the method's name.
+
 =item get_package()
 
 Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
 
-=item get_super_method()
+=item get_parameter_description()
 
-Search the superclasses hierarchy for an identically named C<PerlBean::Method> and return it. If no method is found C<undef> is returned.
+Returns the parameter description.
 
-=item write_code(FILEHANDLE)
+=item get_perl_bean()
 
-Write the code for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+Returns the PerlBean to which this method belongs.
 
-=item write_pod(FILEHANDLE)
+=item is_documented()
 
-Write the documentation for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+Returns whether the method is documented or not.
+
+=item is_implemented()
+
+Returns whether the method is implemented or not.
+
+=item is_interface()
+
+Returns whether the method is defined as interface or not.
+
+=item is_volatile()
+
+Returns whether the method is volatile or not.
 
 =item set_body(VALUE)
 
@@ -142,41 +179,25 @@ Set the method's body. C<VALUE> is the value. On error an exception C<Error::Sim
 
 =back
 
-=item get_body()
-
-Returns the method's body.
-
 =item set_description(VALUE)
 
 Set the method description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_description()
-
-Returns the method description.
 
 =item set_documented(VALUE)
 
 State that the method is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
 
-=item is_documented()
-
-Returns whether the method is documented or not.
-
 =item set_exception_class(VALUE)
 
-Set the class to throw in eventual interface inplementations. C<VALUE> is the value. Default value at initialization is C<'Error::Simple'>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+Set the class to throw in eventual interface implementations. C<VALUE> is the value. Default value at initialization is C<Error::Simple>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
 
-=item get_exception_class()
+=item set_implemented(VALUE)
 
-Returns the class to throw in eventual interface inplementations.
+State that the method is implemented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
 
 =item set_interface(VALUE)
 
 State that the method is defined as interface. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item is_interface()
-
-Returns whether the method is defined as interface or not.
 
 =item set_method_name(VALUE)
 
@@ -194,17 +215,9 @@ Set the method's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On e
 
 =back
 
-=item get_method_name()
-
-Returns the method's name.
-
 =item set_parameter_description(VALUE)
 
 Set the parameter description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_parameter_description()
-
-Returns the parameter description.
 
 =item set_perl_bean(VALUE)
 
@@ -222,9 +235,17 @@ Set the PerlBean to which this method belongs. C<VALUE> is the value. On error a
 
 =back
 
-=item get_perl_bean()
+=item set_volatile(VALUE)
 
-Returns the PerlBean to which this method belongs.
+State that the method is volatile. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item write_code(FILEHANDLE)
+
+Write the code for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item write_pod(FILEHANDLE)
+
+Write the documentation for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 
 =back
 
@@ -249,6 +270,7 @@ L<PerlBean::Dependency::Use>,
 L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -259,6 +281,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: January 2003
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -317,6 +340,9 @@ sub _initialize {
     # exception_class, SINGLE, with default value
     $self->set_exception_class( exists( $opt->{exception_class} ) ? $opt->{exception_class} : $DEFAULT_VALUE{exception_class} );
 
+    # implemented, BOOLEAN, with default value
+    $self->set_implemented( exists( $opt->{implemented} ) ? $opt->{implemented} : $DEFAULT_VALUE{implemented} );
+
     # interface, BOOLEAN
     exists( $opt->{interface} ) && $self->set_interface( $opt->{interface} );
 
@@ -330,18 +356,14 @@ sub _initialize {
     # perl_bean, SINGLE
     exists( $opt->{perl_bean} ) && $self->set_perl_bean( $opt->{perl_bean} );
 
+    # volatile, BOOLEAN
+    exists( $opt->{volatile} ) && $self->set_volatile( $opt->{volatile} );
+
     # Return $self
     return($self);
 }
 
-sub get_package {
-    my $self = shift;
-
-    defined( $self->get_perl_bean ) && return( $self->get_perl_bean()->get_package() );
-    return('main');
-}
-
-sub get_super_method {
+sub _get_super_method {
     my $self = shift;
 
     # No super method found if no collection defined
@@ -357,7 +379,7 @@ sub get_super_method {
         defined($super_bean) || return(undef);
 
         # See if the super class bean has the method
-        my $super_meth = $super_bean->get_super_method( $self, {
+        my $super_meth = $super_bean->_get_super_method( $self, {
             $self->get_perl_bean()->get_package() => 1,
         } );
 
@@ -367,254 +389,6 @@ sub get_super_method {
 
     # Nothing found
     return(undef);
-}
-
-sub write_code {
-    my $self = shift;
-    my $fh = shift;
-
-    my $name = $self->get_method_name();
-    my $ec = $self->get_exception_class();
-    my $body = $self->is_interface() ?
-            "${IND}throw $ec${BFP}(\"ERROR: " .
-            $self->get_package() .
-            '::' .
-            $self->get_method_name() .
-            ", call this method in a subclass that has implemented it.\");\n"
-        : '';
-    $body = defined( $self->get_body() ) ? $self->get_body() : $body;
-    $fh->print(<<EOF);
-$SUB $name${PBOC[0]}{
-$body}
-
-EOF
-}
-
-sub write_pod {
-    my $self = shift;
-    my $fh = shift;
-    my $pkg = shift;
-
-    $self->is_documented() || return;
-
-    my $name = $self->get_method_name();
-    my $pre = '';
-    my $par = $self->get_parameter_description();
-    my $desc = $self->get_description() || "\n";;
-    if ( $pkg eq $self->get_package() ) {
-        if ( $self->is_interface() ) {
-            $pre = "This is an interface method. ";
-        }
-        else {
-            my $super_meth = $self->get_super_method();
-            if ( defined($super_meth) ) {
-                if ( $super_meth->is_interface() ) {
-                    $pre = "This method is an implementation from package C<'" .
-                        $super_meth->get_package() . "'>. ";
-                }
-                else {
-                    $pre = "This method is overloaded from package C<'" .
-                        $super_meth->get_package() . "'>. ";
-                }
-            }
-        }
-    }
-    else {
-        $pre = "This method is inherited from package C<'" .
-            $self->get_package() . "'>. ";
-    }
-    $fh->print(<<EOF);
-\=item $name${BFP}($par)
-
-$pre$desc
-EOF
-}
-
-sub set_body {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'body', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_body, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{body} = $val;
-}
-
-sub get_body {
-    my $self = shift;
-
-    return( $self->{PerlBean_Method}{body} );
-}
-
-sub set_description {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'description', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_description, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{description} = $val;
-}
-
-sub get_description {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Method}{description} ) {
-        if ( $self->{PerlBean_Method}{description} =~ /__SUPER_POD__/ ) {
-            my $super_meth = $self->get_super_method();
-            my $super_pod = '';
-            $super_pod = $super_meth->get_description() if ( defined($super_meth) );
-            chomp( $super_pod );
-            my $ret = $self->{PerlBean_Method}{description};
-            $ret =~ s/__SUPER_POD__/$super_pod/g;
-            return($ret);
-        }
-        else {
-            return( $self->{PerlBean_Method}{description} );
-        }
-    }
-
-    my $super_meth = $self->get_super_method();
-    defined( $super_meth ) && return( $super_meth->get_description() );
-
-    return('');
-}
-
-sub set_documented {
-    my $self = shift;
-
-    if (shift) {
-        $self->{PerlBean_Method}{documented} = 1;
-    }
-    else {
-        $self->{PerlBean_Method}{documented} = 0;
-    }
-}
-
-sub is_documented {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Method}{documented} ) {
-        return(1);
-    }
-    else {
-        return(0);
-    }
-}
-
-sub set_exception_class {
-    my $self = shift;
-    my $val = shift;
-
-    # Value for 'exception_class' is not allowed to be empty
-    defined($val) || throw Error::Simple("ERROR: PerlBean::Method::set_exception_class, value may not be empty.");
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'exception_class', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_exception_class, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{exception_class} = $val;
-}
-
-sub get_exception_class {
-    my $self = shift;
-
-    return( $self->{PerlBean_Method}{exception_class} );
-}
-
-sub set_interface {
-    my $self = shift;
-
-    if (shift) {
-        $self->{PerlBean_Method}{interface} = 1;
-    }
-    else {
-        $self->{PerlBean_Method}{interface} = 0;
-    }
-}
-
-sub is_interface {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Method}{interface} ) {
-        return(1);
-    }
-    else {
-        return(0);
-    }
-}
-
-sub set_method_name {
-    my $self = shift;
-    my $val = shift;
-
-    # Value for 'method_name' is not allowed to be empty
-    defined($val) || throw Error::Simple("ERROR: PerlBean::Method::set_method_name, value may not be empty.");
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'method_name', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_method_name, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{method_name} = $val;
-}
-
-sub get_method_name {
-    my $self = shift;
-
-    return( $self->{PerlBean_Method}{method_name} );
-}
-
-sub set_parameter_description {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'parameter_description', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_parameter_description, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{parameter_description} = $val;
-}
-
-sub get_parameter_description {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Method}{parameter_description} ) {
-        if ( $self->{PerlBean_Method}{parameter_description} =~ /__SUPER_POD__/ ) {
-            my $super_meth = $self->get_super_method();
-            my $super_pod = '';
-            $super_pod = $super_meth->get_parameter_description() if ( defined($super_meth) );
-            my $ret = $self->{PerlBean_Method}{parameter_description};
-            $ret =~ s/__SUPER_POD__/$super_pod/g;
-            return($ret);
-        }
-        else {
-            return( $self->{PerlBean_Method}{parameter_description} );
-        }
-    }
-
-    my $super_meth = $self->get_super_method();
-    defined($super_meth) && return( $super_meth->get_parameter_description() );
-
-    return('');
-}
-
-sub set_perl_bean {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'perl_bean', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_perl_bean, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Method}{perl_bean} = $val;
-}
-
-sub get_perl_bean {
-    my $self = shift;
-
-    return( $self->{PerlBean_Method}{perl_bean} );
 }
 
 sub _value_is_allowed {
@@ -658,5 +432,312 @@ sub _value_is_allowed {
 
     # OK, all values are allowed
     return(1);
+}
+
+sub get_body {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method}{body} );
+}
+
+sub get_description {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{description} ) {
+        if ( $self->{PerlBean_Method}{description} =~ /__SUPER_POD__/ ) {
+            my $super_meth = $self->_get_super_method();
+            my $super_pod = '';
+            $super_pod = $super_meth->get_description() if ( defined($super_meth) );
+            chomp( $super_pod );
+            my $ret = $self->{PerlBean_Method}{description};
+            $ret =~ s/__SUPER_POD__/$super_pod/g;
+            return($ret);
+        }
+        else {
+            return( $self->{PerlBean_Method}{description} );
+        }
+    }
+
+    my $super_meth = $self->_get_super_method();
+    defined( $super_meth ) && return( $super_meth->get_description() );
+
+    return('');
+}
+
+sub get_exception_class {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method}{exception_class} );
+}
+
+sub get_method_name {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method}{method_name} );
+}
+
+sub get_package {
+    my $self = shift;
+
+    # Get the package name from the PerlBean
+    defined( $self->get_perl_bean ) &&
+        return( $self->get_perl_bean()->get_package() );
+
+    # Return 'main' as default
+    return('main');
+}
+
+sub get_parameter_description {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{parameter_description} ) {
+        if ( $self->{PerlBean_Method}{parameter_description} =~ /__SUPER_POD__/ ) {
+            my $super_meth = $self->_get_super_method();
+            my $super_pod = '';
+            $super_pod = $super_meth->get_parameter_description() if ( defined($super_meth) );
+            my $ret = $self->{PerlBean_Method}{parameter_description};
+            $ret =~ s/__SUPER_POD__/$super_pod/g;
+            return($ret);
+        }
+        else {
+            return( $self->{PerlBean_Method}{parameter_description} );
+        }
+    }
+
+    my $super_meth = $self->_get_super_method();
+    defined($super_meth) && return( $super_meth->get_parameter_description() );
+
+    return('');
+}
+
+sub get_perl_bean {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method}{perl_bean} );
+}
+
+sub is_documented {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{documented} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub is_implemented {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{implemented} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub is_interface {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{interface} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub is_volatile {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{volatile} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub set_body {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'body', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_body, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{body} = $val;
+}
+
+sub set_description {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'description', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_description, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{description} = $val;
+}
+
+sub set_documented {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Method}{documented} = 1;
+    }
+    else {
+        $self->{PerlBean_Method}{documented} = 0;
+    }
+}
+
+sub set_exception_class {
+    my $self = shift;
+    my $val = shift;
+
+    # Value for 'exception_class' is not allowed to be empty
+    defined($val) || throw Error::Simple("ERROR: PerlBean::Method::set_exception_class, value may not be empty.");
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'exception_class', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_exception_class, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{exception_class} = $val;
+}
+
+sub set_implemented {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Method}{implemented} = 1;
+    }
+    else {
+        $self->{PerlBean_Method}{implemented} = 0;
+    }
+}
+
+sub set_interface {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Method}{interface} = 1;
+    }
+    else {
+        $self->{PerlBean_Method}{interface} = 0;
+    }
+}
+
+sub set_method_name {
+    my $self = shift;
+    my $val = shift;
+
+    # Value for 'method_name' is not allowed to be empty
+    defined($val) || throw Error::Simple("ERROR: PerlBean::Method::set_method_name, value may not be empty.");
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'method_name', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_method_name, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{method_name} = $val;
+}
+
+sub set_parameter_description {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'parameter_description', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_parameter_description, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{parameter_description} = $val;
+}
+
+sub set_perl_bean {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'perl_bean', $val ) || throw Error::Simple("ERROR: PerlBean::Method::set_perl_bean, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method}{perl_bean} = $val;
+}
+
+sub set_volatile {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Method}{volatile} = 1;
+    }
+    else {
+        $self->{PerlBean_Method}{volatile} = 0;
+    }
+}
+
+sub write_code {
+    my $self = shift;
+    my $fh = shift;
+
+    # Do nothing if not implemented
+    $self->is_implemented() || return;
+
+    my $name = $self->get_method_name();
+    my $ec = $self->get_exception_class();
+    my $body = $self->is_interface() ?
+            "${IND}throw $ec${BFP}(\"ERROR: " .
+            $self->get_package() .
+            '::' .
+            $self->get_method_name() .
+            ", call this method in a subclass that has implemented it.\");\n"
+        : '';
+    $body = defined( $self->get_body() ) ? $self->get_body() : $body;
+    $fh->print(<<EOF);
+$SUB $name${PBOC[0]}{
+$body}
+
+EOF
+}
+
+sub write_pod {
+    my $self = shift;
+    my $fh = shift;
+    my $pkg = shift;
+
+    # Do nothing if not documented
+    $self->is_documented() || return;
+
+    my $name = $self->get_method_name();
+    my $pre = '';
+    my $par = $self->get_parameter_description();
+    my $desc = $self->get_description() || "\n";;
+    if ( $pkg eq $self->get_package() ) {
+        if ( $self->is_interface() ) {
+            $pre = "This is an interface method. ";
+        }
+        else {
+            my $super_meth = $self->_get_super_method();
+            if ( defined($super_meth) ) {
+                if ( $super_meth->is_interface() ) {
+                    $pre = "This method is an implementation from package C<" .
+                        $super_meth->get_package() . ">. ";
+                }
+                elsif( ! $self->isa('PerlBean::Method::Constructor') ) {
+                    $pre = "This method is overloaded from package C<" .
+                        $super_meth->get_package() . ">. ";
+                }
+            }
+        }
+    }
+    elsif( ! $self->isa('PerlBean::Method::Constructor') ) {
+        $pre = "This method is inherited from package C<" .
+            $self->get_package() . ">. ";
+    }
+    $fh->print(<<EOF);
+\=item $name${BFP}($par)
+
+$pre$desc
+EOF
 }
 

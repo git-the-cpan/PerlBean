@@ -13,70 +13,70 @@ EOF
     },
     attr_opt => [
         {
-            attribute_name => 'indent',
+            method_factory_name => 'indent',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => '    ',
             short_description => 'the string used for ONE indentation',
         },
         {
-            attribute_name => 'str_pre_block_open_curl',
+            method_factory_name => 'str_pre_block_open_curl',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => ' ',
             short_description => 'the string printed before the opening curly of a multi-line BLOCK. Any string C<__IND_BLOCK__> in the value is replaced with the correct block indentation',
         },
         {
-            attribute_name => 'str_post_block_close_curl',
+            method_factory_name => 'str_post_block_close_curl',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => "\n__IND_BLOCK__",
             short_description => 'the string printed after the closing curly of a multi-line BLOCK. Any string C<__IND_BLOCK__> in the value is replaced with the correct block indentation',
         },
         {
-            attribute_name => 'str_around_operators',
+            method_factory_name => 'str_around_operators',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => ' ',
             short_description => 'the string around most operators',
         },
         {
-            attribute_name => 'str_around_complex_subscripts',
+            method_factory_name => 'str_around_complex_subscripts',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => ' ',
             short_description => 'the string around "complex" subscripts(inside brackets)',
         },
         {
-            attribute_name => 'str_between_conditional_and_parenthesis',
+            method_factory_name => 'str_between_conditional_and_parenthesis',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => ' ',
-            short_description => 'the string between condiftionals (C<for>, C<if>, C<while>...) and parenthesis',
+            short_description => 'the string between conditionals (C<for>, C<if>, C<while>...) and parenthesis',
         },
         {
-            attribute_name => 'str_between_function_and_parenthesis',
+            method_factory_name => 'str_between_function_and_parenthesis',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => '',
             short_description => 'the string between function name and its opening parenthesis',
         },
         {
-            attribute_name => 'str_after_comma',
+            method_factory_name => 'str_after_comma',
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             default_value => ' ',
             short_description => 'the string after each comma',
         },
         {
-            attribute_name => 'attribute_name_to_method_base_filter',
+            method_factory_name => 'method_factory_name_to_method_base_filter',
             type => 'SINGLE',
             allow_ref => [qw(CODE)],
-		default_value => '\&default_attribute_name_to_method_base_filter',
+		default_value => '\&default_method_factory_name_to_method_base_filter',
             short_description => 'the subroutine that converts an attribute name to the method base',
         },
         {
-            attribute_name => 'method_operation_filter',
+            method_factory_name => 'method_operation_filter',
             type => 'SINGLE',
             allow_ref => [qw(CODE)],
 		default_value => '\&default_method_operation_filter',
@@ -85,7 +85,7 @@ EOF
     ],
     meth_opt => [
         {
-            method_name => 'default_attribute_name_to_method_base_filter',
+            method_name => 'default_method_factory_name_to_method_base_filter',
             parameter_description => 'ATTRIBUTE',
             description => <<EOF,
 Class method. Default attribute name to method filter. C<ATTRIBUTE> is the attribute name. This method adds a C<_> character to C<ATTRIBUTE> and returns it.
@@ -108,7 +108,7 @@ EOF
 #            method_name => 'instance',
 #            parameter_description => '[OPT_HASH_REF]',
 #            description => <<EOF,
-#Always returns the same C<PerlBean::Style> -singleton- object instance. The forst time it is called, parameter C<OPT_HASH_REF> -if specified- is passed to the constructor.
+#Always returns the same C<PerlBean::Style> -singleton- object instance. The first time it is called, parameter C<OPT_HASH_REF> -if specified- is passed to the constructor.
 #EOF
 #            body => <<EOF,
 ## If \$SINGLETON is defined return it
@@ -145,10 +145,10 @@ EOF
             symbol_name => '$AN2MBF',
             export_tag => [ qw( codegen ) ],
             description => <<EOF,
-The value which would be obtained through the singleton object's C<get_attribute_name_to_method_base_filter()> method.
+The value which would be obtained through the singleton object's C<get_method_factory_name_to_method_base_filter()> method.
 EOF
             comment => <<EOF,
-# Shortcut for singleton's get_attribute_name_to_method_base_filter()
+# Shortcut for singleton's get_method_factory_name_to_method_base_filter()
 EOF
         },
         {
@@ -226,7 +226,7 @@ EOF
         {
             export_tag_name => 'codegen',
             description => <<EOF,
-This tag contains variables usefull for the actual code generation. You should not need to use this tag.
+This tag contains variables useful for the actual code generation. You should not need to use this tag.
 EOF
         },
     ],

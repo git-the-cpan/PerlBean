@@ -1,3 +1,4 @@
+COPYING
 Changes
 MANIFEST
 Makefile.PL
@@ -23,6 +24,7 @@ gen/attr-PerlBean_Described.pl
 gen/attr-PerlBean_Described_ExportTag.pl
 gen/attr-PerlBean_Method.pl
 gen/attr-PerlBean_Method_Constructor.pl
+gen/attr-PerlBean_Method_Factory.pl
 gen/attr-PerlBean_Style.pl
 gen/attr-PerlBean_Symbol.pl
 gen/generate
@@ -56,6 +58,7 @@ lib/PerlBean/Described.pm
 lib/PerlBean/Described/ExportTag.pm
 lib/PerlBean/Method.pm
 lib/PerlBean/Method/Constructor.pm
+lib/PerlBean/Method/Factory.pm
 lib/PerlBean/Style.pm
 lib/PerlBean/Symbol.pm
 mksdiff-all

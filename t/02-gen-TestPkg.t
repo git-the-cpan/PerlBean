@@ -20,50 +20,50 @@ use PerlBean::Attribute::Factory;
 
 my @attribute_class = (
     {
-        attribute_name => 'b1',
+        method_factory_name => 'b1',
         type => 'BOOLEAN',
     },
     {
-        attribute_name => 'b2',
+        method_factory_name => 'b2',
         type => 'BOOLEAN',
         default_value => 1,
     },
     {
-        attribute_name => 'b3',
+        method_factory_name => 'b3',
         type => 'BOOLEAN',
         mandatory => 1,
     },
     {
-        attribute_name => 'b4',
+        method_factory_name => 'b4',
         type => 'BOOLEAN',
         default_value => 1,
         mandatory => 1,
     },
 
     {
-        attribute_name => 's1',
+        method_factory_name => 's1',
         type => 'SINGLE',
     },
     {
-        attribute_name => 's2',
+        method_factory_name => 's2',
         type => 'SINGLE',
         allow_empty => 0,
     },
     {
-        attribute_name => 's3',
+        method_factory_name => 's3',
         type => 'SINGLE',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
     },
     {
-        attribute_name => 's4',
+        method_factory_name => 's4',
         type => 'SINGLE',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
         allow_ref => [qw (refFoo refBar)],
     },
     {
-        attribute_name => 's5',
+        method_factory_name => 's5',
         type => 'SINGLE',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -71,7 +71,7 @@ my @attribute_class = (
         allow_value => [qw (valueFoo valueBar)],
     },
     {
-        attribute_name => 's6',
+        method_factory_name => 's6',
         type => 'SINGLE',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -81,29 +81,29 @@ my @attribute_class = (
     },
 
     {
-        attribute_name => 'm1',
+        method_factory_name => 'm1',
         type => 'MULTI',
     },
     {
-        attribute_name => 'm2',
+        method_factory_name => 'm2',
         type => 'MULTI',
         allow_empty => 0,
     },
     {
-        attribute_name => 'm3',
+        method_factory_name => 'm3',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
     },
     {
-        attribute_name => 'm4',
+        method_factory_name => 'm4',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
         allow_ref => [qw (refFoo refBar)],
     },
     {
-        attribute_name => 'm5',
+        method_factory_name => 'm5',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -111,7 +111,7 @@ my @attribute_class = (
         allow_value => [qw (valueFoo valueBar)],
     },
     {
-        attribute_name => 'm6',
+        method_factory_name => 'm6',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -120,7 +120,7 @@ my @attribute_class = (
         mandatory => 1,
     },
     {
-        attribute_name => 'm7',
+        method_factory_name => 'm7',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -130,7 +130,7 @@ my @attribute_class = (
         ordered => 1,
     },
     {
-        attribute_name => 'm8',
+        method_factory_name => 'm8',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -140,7 +140,7 @@ my @attribute_class = (
         unique => 1,
     },
     {
-        attribute_name => 'm9',
+        method_factory_name => 'm9',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -151,7 +151,7 @@ my @attribute_class = (
         unique => 1,
     },
     {
-        attribute_name => 'm10',
+        method_factory_name => 'm10',
         type => 'MULTI',
         allow_empty => 0,
         allow_isa => [qw (isaFoo isaBar)],
@@ -191,13 +191,13 @@ my $factory = PerlBean::Attribute::Factory->new ();
 foreach my $attribute_class (@attribute_class) {
     $attribute_class->{perl_bean} = $bean;
     my $attribute = $factory->create_attribute ($attribute_class);
-    $attribute->{short_description} = $attribute->{attribute_name};
-    $bean->add_attribute ($attribute);
+    $attribute->{short_description} = $attribute->{method_factory_name};
+    $bean->add_method_factory($attribute);
 }
 foreach my $meth_opt (@meth_opt) {
     require PerlBean::Method;
     my $meth = PerlBean::Method->new ($meth_opt);
-    $bean->add_method ($meth);
+    $bean->add_method($meth);
 }
 foreach my $meth_opt (@constr_opt) {
     require PerlBean::Method::Constructor;

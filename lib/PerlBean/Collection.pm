@@ -24,12 +24,8 @@ our %ALLOW_RX = (
 our %ALLOW_VALUE = (
 );
 
-# Used by _value_is_allowed
-our %DEFAULT_VALUE = (
-);
-
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -37,7 +33,7 @@ __END__
 
 =head1 NAME
 
-PerlBean::Collection - contains a ccollection of PerlBean objects
+PerlBean::Collection - contains a collection of PerlBean objects
 
 =head1 SYNOPSIS
 
@@ -51,10 +47,10 @@ PerlBean::Collection - contains a ccollection of PerlBean objects
  } );
  my $factory = PerlBean::Attribute::Factory->new();
  my $attr = $factory->create_attribute( {
-     attribute_name => 'name',
+     method_factory_name => 'name',
      short_description => 'the name of the athlete',
  } );
- $bean->add_attribute($attr);
+ $bean->add_method_factory($attr);
  
  my $bean2 = PerlBean->new( {
      package => 'Cyclist',
@@ -62,10 +58,10 @@ PerlBean::Collection - contains a ccollection of PerlBean objects
  } );
  my $factory = PerlBean::Attribute::Factory->new();
  my $attr2 = $factory->create_attribute( {
-     attribute_name => 'cycle',
+     method_factory_name => 'cycle',
      short_description => 'the cyclist\'s cycle',
  } );
- $bean2->add_attribute($attr2);
+ $bean2->add_method_factory($attr2);
  
  my $collection = PerlBean::Collection->new();
  $collection->add_perl_bean($bean);
@@ -108,49 +104,9 @@ Passed to L<set_perl_bean()>. Must be an C<ARRAY> reference.
 
 =over
 
-=item write(DIRECTORY)
-
-Write the hierarchy of Perl class code to C<DIRECTORY>. C<DIRECTORY> is a directory name. On error an exception C<Error::Simple> is thrown.
-
-=item set_license(VALUE)
-
-Set the software license for the PerlBean collection. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=over
-
-=item VALUE must match regular expression:
-
-=over
-
-=item .*
-
-=back
-
-=back
-
-=item get_license()
-
-Returns the software license for the PerlBean collection.
-
-=item set_perl_bean( [ VALUE ... ] )
-
-Set the list of PerlBean objects in the collection absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<get_package()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
-
-=over
-
-=item The values in C<ARRAY> must be a (sub)class of:
-
-=over
-
-=item PerlBean
-
-=back
-
-=back
-
 =item add_perl_bean( [ VALUE ... ] )
 
-Add additional values on the list of PerlBean objects in the collection. Each C<VALUE> is an object out of which the id is obtained through method C<get_package()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+Add additional values on the list of PerlBean objects in the collection. Each C<VALUE> is an object out of which the id is obtained through method C<get_package()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurrences of the same key yield in the last occurring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -172,13 +128,53 @@ Delete elements from the list of PerlBean objects in the collection. Returns the
 
 Returns the count of items in C<ARRAY> that are in the list of PerlBean objects in the collection.
 
+=item get_license()
+
+Returns the software license for the PerlBean collection.
+
 =item keys_perl_bean()
 
 Returns an C<ARRAY> containing the keys of the list of PerlBean objects in the collection.
 
+=item set_license(VALUE)
+
+Set the software license for the PerlBean collection. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must match regular expression:
+
+=over
+
+=item .*
+
+=back
+
+=back
+
+=item set_perl_bean( [ VALUE ... ] )
+
+Set the list of PerlBean objects in the collection absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<get_package()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurrences of the same key yield in the last occurring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean
+
+=back
+
+=back
+
 =item values_perl_bean( [ KEY_ARRAY ] )
 
 Returns an C<ARRAY> containing the values of the list of PerlBean objects in the collection. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+
+=item write(DIRECTORY)
+
+Write the hierarchy of Perl class code to C<DIRECTORY>. C<DIRECTORY> is a directory name. On error an exception C<Error::Simple> is thrown.
 
 =back
 
@@ -203,6 +199,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -213,6 +210,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: December 2002
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -275,130 +273,6 @@ sub _initialize {
     return($self);
 }
 
-sub write {
-    my $self = shift;
-    my $dir = shift || '.';
-
-    # Check for directory existance
-    ( -d $dir ) || throw Error::Simple("ERROR: PerlBean::Collection::write, directory '$dir' does not exist.");
-
-    # Check for directory writability
-    ( -w $dir ) || throw Error::Simple("ERROR: PerlBean::Collection::write, directory '$dir' is not writable.");
-
-    # Generate the PerlBeans
-    foreach my $bean ( $self->values_perl_bean() ) {
-        my $pkg = $bean->get_package();
-        my @dir = split(/:+/, $pkg);
-        my $fn = pop(@dir);
-        my $dir_tot = $dir;
-
-        # Make directory
-        foreach my $sub_dir (@dir) {
-            $dir_tot .= '/' . $sub_dir;
-            next if ( -d $dir_tot );
-            mkdir($dir_tot);
-        }
-
-        # Make the file handle and write bean
-        use IO::File;
-        my $fh = IO::File->new("> $dir_tot/$fn.pm");
-        $bean->write( $fh, $self );
-    }
-}
-
-sub set_license {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'license', $val ) || throw Error::Simple("ERROR: PerlBean::Collection::set_license, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Collection}{license} = $val;
-}
-
-sub get_license {
-    my $self = shift;
-
-    return( $self->{PerlBean_Collection}{license} );
-}
-
-sub set_perl_bean {
-    my $self = shift;
-
-    # Check if isas/refs/rxs/values are allowed
-    &_value_is_allowed( 'perl_bean', @_ ) || throw Error::Simple("ERROR: PerlBean::Collection::set_perl_bean, one or more specified value(s) '@_' is/are not allowed.");
-
-    # Empty list
-    $self->{PerlBean_Collection}{perl_bean} = {};
-
-    # Add keys/values
-    foreach my $val (@_) {
-        $self->{PerlBean_Collection}{perl_bean}{ $val->get_package() } = $val;
-        $val->set_collection($self);
-    }
-}
-
-sub add_perl_bean {
-    my $self = shift;
-
-    # Check if isas/refs/rxs/values are allowed
-    &_value_is_allowed( 'perl_bean', @_ ) || throw Error::Simple("ERROR: PerlBean::Collection::add_perl_bean, one or more specified value(s) '@_' is/are not allowed.");
-
-    # Add keys/values
-    foreach my $val (@_) {
-        $self->{PerlBean_Collection}{perl_bean}{ $val->get_package() } = $val;
-        $val->set_collection($self);
-    }
-}
-
-sub delete_perl_bean {
-    my $self = shift;
-
-    # Delete values
-    my $del = 0;
-    foreach my $val (@_) {
-        exists( $self->{PerlBean_Collection}{perl_bean}{$val} ) || next;
-        delete( $self->{PerlBean_Collection}{perl_bean}{$val} );
-        $del ++;
-    }
-    return($del);
-}
-
-sub exists_perl_bean {
-    my $self = shift;
-
-    # Count occurences
-    my $count = 0;
-    foreach my $val (@_) {
-        $count += exists( $self->{PerlBean_Collection}{perl_bean}{$val} );
-    }
-    return($count);
-}
-
-sub keys_perl_bean {
-    my $self = shift;
-
-    # Return all keys
-    return( keys( %{ $self->{PerlBean_Collection}{perl_bean} } ) );
-}
-
-sub values_perl_bean {
-    my $self = shift;
-
-    if ( scalar(@_) ) {
-        my @ret = ();
-        foreach my $key (@_) {
-            exists( $self->{PerlBean_Collection}{perl_bean}{$key} ) && push( @ret, $self->{PerlBean_Collection}{perl_bean}{$key} );
-        }
-        return(@ret);
-    }
-    else {
-        # Return all values
-        return( values( %{ $self->{PerlBean_Collection}{perl_bean} } ) );
-    }
-}
-
 sub _value_is_allowed {
     my $name = shift;
 
@@ -440,5 +314,141 @@ sub _value_is_allowed {
 
     # OK, all values are allowed
     return(1);
+}
+
+sub add_perl_bean {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'perl_bean', @_ ) || throw Error::Simple("ERROR: PerlBean::Collection::add_perl_bean, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean_Collection}{perl_bean}{ $val->get_package() } = $val;
+        $val->set_collection($self);
+    }
+}
+
+sub delete_perl_bean {
+    my $self = shift;
+
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean_Collection}{perl_bean}{$val} ) || next;
+        delete( $self->{PerlBean_Collection}{perl_bean}{$val} );
+        $del ++;
+    }
+    return($del);
+}
+
+sub exists_perl_bean {
+    my $self = shift;
+
+    # Count occurrences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean_Collection}{perl_bean}{$val} );
+    }
+    return($count);
+}
+
+sub get_license {
+    my $self = shift;
+
+    return( $self->{PerlBean_Collection}{license} );
+}
+
+sub keys_perl_bean {
+    my $self = shift;
+
+    # Return all keys
+    return( keys( %{ $self->{PerlBean_Collection}{perl_bean} } ) );
+}
+
+sub set_license {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'license', $val ) || throw Error::Simple("ERROR: PerlBean::Collection::set_license, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Collection}{license} = $val;
+}
+
+sub set_perl_bean {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'perl_bean', @_ ) || throw Error::Simple("ERROR: PerlBean::Collection::set_perl_bean, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean_Collection}{perl_bean} = {};
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean_Collection}{perl_bean}{ $val->get_package() } = $val;
+        $val->set_collection($self);
+    }
+}
+
+sub values_perl_bean {
+    my $self = shift;
+
+    if ( scalar(@_) ) {
+        my @ret = ();
+        foreach my $key (@_) {
+            exists( $self->{PerlBean_Collection}{perl_bean}{$key} ) && push( @ret, $self->{PerlBean_Collection}{perl_bean}{$key} );
+        }
+        return(@ret);
+    }
+    else {
+        # Return all values
+        return( values( %{ $self->{PerlBean_Collection}{perl_bean} } ) );
+    }
+}
+
+sub write {
+    my $self = shift;
+    my $dir = shift || '.';
+
+    # Check for directory existence
+    ( -d $dir ) ||
+        throw Error::Simple("ERROR: PerlBean::Collection::write, directory '$dir' does not exist.");
+
+    # Check for directory write-ability
+    ( -w $dir ) ||
+        throw Error::Simple("ERROR: PerlBean::Collection::write, directory '$dir' is not writable.");
+
+    # Finalize the PerlBeans
+    foreach my $bean ( $self->values_perl_bean() ) {
+        $bean->_finalize();
+    }
+
+    # Generate the PerlBeans
+    foreach my $bean ( $self->values_perl_bean() ) {
+        my $pkg = $bean->get_package();
+        my @dir = split(/:+/, $pkg);
+        my $fn = pop(@dir);
+        my $dir_tot = $dir;
+
+        # Make directory
+        foreach my $sub_dir (@dir) {
+            $dir_tot .= '/' . $sub_dir;
+            next if ( -d $dir_tot );
+            mkdir($dir_tot);
+        }
+
+        # Make the file handle and write bean
+        use IO::File;
+        my $fh = IO::File->new("> $dir_tot/$fn.pm");
+        $bean->write( $fh, $self );
+    }
+
+    # Un-finalize the PerlBeans
+    foreach my $bean ( $self->values_perl_bean() ) {
+        $bean->_unfinalize();
+    }
 }
 

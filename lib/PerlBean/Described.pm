@@ -6,28 +6,8 @@ use warnings;
 use AutoLoader qw(AUTOLOAD);
 use Error qw(:try);
 
-# Used by _value_is_allowed
-our %ALLOW_ISA = (
-);
-
-# Used by _value_is_allowed
-our %ALLOW_REF = (
-);
-
-# Used by _value_is_allowed
-our %ALLOW_RX = (
-);
-
-# Used by _value_is_allowed
-our %ALLOW_VALUE = (
-);
-
-# Used by _value_is_allowed
-our %DEFAULT_VALUE = (
-);
-
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -73,13 +53,13 @@ Passed to L<set_description()>.
 
 =over
 
-=item set_description(VALUE)
-
-Set the description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
 =item get_description()
 
 Returns the description.
+
+=item set_description(VALUE)
+
+Set the description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
 =back
 
@@ -104,6 +84,7 @@ L<PerlBean::Dependency::Use>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -114,6 +95,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: March 2003
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -167,6 +149,16 @@ sub _initialize {
     return($self);
 }
 
+sub _value_is_allowed {
+    return(1);
+}
+
+sub get_description {
+    my $self = shift;
+
+    return( $self->{PerlBean_Described}{description} );
+}
+
 sub set_description {
     my $self = shift;
     my $val = shift;
@@ -176,54 +168,5 @@ sub set_description {
 
     # Assignment
     $self->{PerlBean_Described}{description} = $val;
-}
-
-sub get_description {
-    my $self = shift;
-
-    return( $self->{PerlBean_Described}{description} );
-}
-
-sub _value_is_allowed {
-    my $name = shift;
-
-    # Value is allowed if no ALLOW clauses exist for the named attribute
-    if ( ! exists( $ALLOW_ISA{$name} ) && ! exists( $ALLOW_REF{$name} ) && ! exists( $ALLOW_RX{$name} ) && ! exists( $ALLOW_VALUE{$name} ) ) {
-        return(1);
-    }
-
-    # At this point, all values in @_ must to be allowed
-    CHECK_VALUES:
-    foreach my $val (@_) {
-        # Check ALLOW_ISA
-        if ( ref($val) && exists( $ALLOW_ISA{$name} ) ) {
-            foreach my $class ( @{ $ALLOW_ISA{$name} } ) {
-                &UNIVERSAL::isa( $val, $class ) && next CHECK_VALUES;
-            }
-        }
-
-        # Check ALLOW_REF
-        if ( ref($val) && exists( $ALLOW_REF{$name} ) ) {
-            exists( $ALLOW_REF{$name}{ ref($val) } ) && next CHECK_VALUES;
-        }
-
-        # Check ALLOW_RX
-        if ( defined($val) && ! ref($val) && exists( $ALLOW_RX{$name} ) ) {
-            foreach my $rx ( @{ $ALLOW_RX{$name} } ) {
-                $val =~ /$rx/ && next CHECK_VALUES;
-            }
-        }
-
-        # Check ALLOW_VALUE
-        if ( ! ref($val) && exists( $ALLOW_VALUE{$name} ) ) {
-            exists( $ALLOW_VALUE{$name}{$val} ) && next CHECK_VALUES;
-        }
-
-        # We caught a not allowed value
-        return(0);
-    }
-
-    # OK, all values are allowed
-    return(1);
 }
 

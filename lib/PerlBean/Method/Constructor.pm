@@ -8,7 +8,7 @@ use AutoLoader qw(AUTOLOAD);
 use Error qw(:try);
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -28,7 +28,7 @@ Abstract PerlBean method information
 
 =head1 DESCRIPTION
 
-C<PerlBean::Method> class for bean constructor method information. This is a subclass from C<PerlBean::Method> with the purpose to diferenciate beteen plain methods and constructors.
+C<PerlBean::Method> class for bean constructor method information. This is a subclass from C<PerlBean::Method> with the purpose to differentiate between plain methods and constructors.
 
 =head1 CONSTRUCTOR
 
@@ -58,6 +58,10 @@ Passed to L<set_documented()>. Defaults to B<1>.
 
 Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
 
+=item B<C<implemented>>
+
+Passed to L<set_implemented()>. Defaults to B<1>.
+
 =item B<C<interface>>
 
 Passed to L<set_interface()>.
@@ -74,6 +78,10 @@ Passed to L<set_parameter_description()>.
 
 Passed to L<set_perl_bean()>.
 
+=item B<C<volatile>>
+
+Passed to L<set_volatile()>.
+
 =back
 
 =back
@@ -82,59 +90,133 @@ Passed to L<set_perl_bean()>.
 
 =over
 
+=item get_body()
+
+This method is inherited from package C<PerlBean::Method>. Returns the method's body.
+
+=item get_description()
+
+This method is inherited from package C<PerlBean::Method>. Returns the method description.
+
+=item get_exception_class()
+
+This method is inherited from package C<PerlBean::Method>. Returns the class to throw in eventual interface implementations.
+
+=item get_method_name()
+
+This method is inherited from package C<PerlBean::Method>. Returns the method's name.
+
 =item get_package()
 
-This method is inherited from package C<'PerlBean::Method'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+This method is inherited from package C<PerlBean::Method>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
 
-=item get_super_method()
+=item get_parameter_description()
 
-This method is inherited from package C<'PerlBean::Method'>. Search the superclasses hierarchy for an identically named C<PerlBean::Method> and return it. If no method is found C<undef> is returned.
+This method is inherited from package C<PerlBean::Method>. Returns the parameter description.
 
-=item write_code(FILEHANDLE)
+=item get_perl_bean()
 
-This method is inherited from package C<'PerlBean::Method'>. Write the code for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+This method is inherited from package C<PerlBean::Method>. Returns the PerlBean to which this method belongs.
 
-=item write_pod(FILEHANDLE)
+=item is_documented()
 
-This method is inherited from package C<'PerlBean::Method'>. Write the documentation for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+This method is inherited from package C<PerlBean::Method>. Returns whether the method is documented or not.
 
-=back
+=item is_implemented()
 
-=head1 INHERITED METHODS FROM PerlBean::Method
+This method is inherited from package C<PerlBean::Method>. Returns whether the method is implemented or not.
+
+=item is_interface()
+
+This method is inherited from package C<PerlBean::Method>. Returns whether the method is defined as interface or not.
+
+=item is_volatile()
+
+This method is inherited from package C<PerlBean::Method>. Returns whether the method is volatile or not.
+
+=item set_body(VALUE)
+
+This method is inherited from package C<PerlBean::Method>. Set the method's body. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
 =over
 
-=item To access attribute named B<C<body>>:
+=item VALUE must match regular expression:
 
-set_body(), get_body()
+=over
 
-=item To access attribute named B<C<description>>:
+=item .*
 
-set_description(), get_description()
+=back
 
-=item To access attribute named B<C<documented>>:
+=back
 
-set_documented(), is_documented()
+=item set_description(VALUE)
 
-=item To access attribute named B<C<exception_class>>:
+This method is inherited from package C<PerlBean::Method>. Set the method description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
-set_exception_class(), get_exception_class()
+=item set_documented(VALUE)
 
-=item To access attribute named B<C<interface>>:
+This method is inherited from package C<PerlBean::Method>. State that the method is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
 
-set_interface(), is_interface()
+=item set_exception_class(VALUE)
 
-=item To access attribute named B<C<method_name>>:
+This method is inherited from package C<PerlBean::Method>. Set the class to throw in eventual interface implementations. C<VALUE> is the value. Default value at initialization is C<Error::Simple>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
 
-set_method_name(), get_method_name()
+=item set_implemented(VALUE)
 
-=item To access attribute named B<C<parameter_description>>:
+This method is inherited from package C<PerlBean::Method>. State that the method is implemented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
 
-set_parameter_description(), get_parameter_description()
+=item set_interface(VALUE)
 
-=item To access attribute named B<C<perl_bean>>:
+This method is inherited from package C<PerlBean::Method>. State that the method is defined as interface. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
-set_perl_bean(), get_perl_bean()
+=item set_method_name(VALUE)
+
+This method is inherited from package C<PerlBean::Method>. Set the method's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must match regular expression:
+
+=over
+
+=item ^\w+$
+
+=back
+
+=back
+
+=item set_parameter_description(VALUE)
+
+This method is inherited from package C<PerlBean::Method>. Set the parameter description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_perl_bean(VALUE)
+
+This method is inherited from package C<PerlBean::Method>. Set the PerlBean to which this method belongs. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must be a (sub)class of:
+
+=over
+
+=item PerlBean
+
+=back
+
+=back
+
+=item set_volatile(VALUE)
+
+This method is inherited from package C<PerlBean::Method>. State that the method is volatile. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item write_code(FILEHANDLE)
+
+This method is inherited from package C<PerlBean::Method>. Write the code for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item write_pod(FILEHANDLE)
+
+This method is inherited from package C<PerlBean::Method>. Write the documentation for the method to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 
 =back
 
@@ -159,6 +241,7 @@ L<PerlBean::Dependency::Use>,
 L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -169,6 +252,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: February 2003
+Last update: September 2003
 
 =head1 AUTHOR
 

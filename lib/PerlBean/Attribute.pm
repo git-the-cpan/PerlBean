@@ -1,31 +1,17 @@
 package PerlBean::Attribute;
 
 use 5.005;
+use base qw( PerlBean::Method::Factory );
 use strict;
 use warnings;
 use AutoLoader qw(AUTOLOAD);
 use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-# Used by _value_is_allowed
-our %ALLOW_ISA = (
-    'perl_bean' => [ 'PerlBean' ],
-);
+# Legacy count variable
+our $LEGACY_COUNT = 0;
 
-# Used by _value_is_allowed
-our %ALLOW_REF = (
-);
-
-# Used by _value_is_allowed
-our %ALLOW_RX = (
-    'attribute_name' => [ '^\w+$' ],
-);
-
-# Used by _value_is_allowed
-our %ALLOW_VALUE = (
-);
-
-# Used by _value_is_allowed
+# Used by _initialize
 our %DEFAULT_VALUE = (
     'documented' => 1,
     'exception_class' => 'Error::Simple',
@@ -33,7 +19,7 @@ our %DEFAULT_VALUE = (
 );
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -67,10 +53,6 @@ Options for C<OPT_HASH_REF> may include:
 
 =over
 
-=item B<C<attribute_name>>
-
-Passed to L<set_attribute_name()>. Mandatory option.
-
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
@@ -91,13 +73,23 @@ Passed to L<set_mandatory()>. Defaults to B<0>.
 
 Passed to L<set_method_base()>.
 
-=item B<C<perl_bean>>
-
-Passed to L<set_perl_bean()>.
-
 =item B<C<short_description>>
 
 Passed to L<set_short_description()>.
+
+=back
+
+Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Method::Factory>> may include:
+
+=over
+
+=item B<C<method_factory_name>>
+
+Passed to L<set_method_factory_name()>. Mandatory option.
+
+=item B<C<perl_bean>>
+
+Passed to L<set_perl_bean()>.
 
 =back
 
@@ -107,9 +99,25 @@ Passed to L<set_short_description()>.
 
 =over
 
-=item get_overloaded_attribute()
+=item create_methods()
 
-Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned.
+This is an interface method. Returns a list of C<PerlBean::Attribute::Method> objects.
+
+=item get_default_value()
+
+Returns attribute default value.
+
+=item get_exception_class()
+
+Returns the class to throw when an exception occurs.
+
+=item get_method_base()
+
+Returns the method base name.
+
+=item get_method_factory_name()
+
+This method is inherited from package C<PerlBean::Method::Factory>. Returns method factory's name.
 
 =item get_package()
 
@@ -119,41 +127,49 @@ Returns the package name. The package name is obtained from the C<PerlBean> to w
 
 Calls C<get_package()> and replaces C<:+> with C <_>.
 
-=item type()
+=item get_perl_bean()
 
-Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+This method is inherited from package C<PerlBean::Method::Factory>. Returns the PerlBean to which this method factory belongs.
 
-=item write_default_value()
+=item get_short_description()
 
-This is an interface method. Returns a C<\%DEFAULT_VALUE> line string for the attribute.
+Returns the attribute description.
 
-=item write_doc_clauses(FILEHANDLE)
+=item is_documented()
 
-Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns whether the attribute is documented or not.
 
-=item write_doc_inherit_methods(FILEHANDLE)
+=item is_mandatory()
 
-This is an interface method. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns whether the attribute is mandatory for construction or not.
 
-=item write_doc_init(FILEHANDLE)
+=item mk_doc_clauses()
 
-This is an interface method. Writes documentation for C<_initialize()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a string containing the documentation for the clauses to which the contents the contents of the attribute must adhere.
 
-=item write_doc_methods(FILEHANDLE)
+=item set_default_value(VALUE)
 
-This is an interface method. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Set attribute default value. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
-=item write_methods(FILEHANDLE)
+=item set_documented(VALUE)
 
-This is an interface method. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+State that the attribute is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
 
-=item write_opt_init(FILEHANDLE)
+=item set_exception_class(VALUE)
 
-This is an interface method. Writes C<_initialize()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Set the class to throw when an exception occurs. C<VALUE> is the value. Default value at initialization is C<Error::Simple>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
 
-=item set_attribute_name(VALUE)
+=item set_mandatory(VALUE)
 
-Set attribute's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+State that the attribute is mandatory for construction. C<VALUE> is the value. Default value at initialization is C<0>. On error an exception C<Error::Simple> is thrown.
+
+=item set_method_base(VALUE)
+
+Set the method base name. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_method_factory_name(VALUE)
+
+This method is inherited from package C<PerlBean::Method::Factory>. Set method factory's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -167,53 +183,9 @@ Set attribute's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On er
 
 =back
 
-=item get_attribute_name()
-
-Returns attribute's name.
-
-=item set_default_value(VALUE)
-
-Set attribute's default value. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_default_value()
-
-Returns attribute's default value.
-
-=item set_documented(VALUE)
-
-State that the attribute is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
-
-=item is_documented()
-
-Returns whether the attribute is documented or not.
-
-=item set_exception_class(VALUE)
-
-Set the class to throw when an exception occurs. C<VALUE> is the value. Default value at initialization is C<'Error::Simple'>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
-
-=item get_exception_class()
-
-Returns the class to throw when an exception occurs.
-
-=item set_mandatory(VALUE)
-
-State that the attribute is mandatory for construction. C<VALUE> is the value. Default value at initialization is C<0>. On error an exception C<Error::Simple> is thrown.
-
-=item is_mandatory()
-
-Returns whether the attribute is mandatory for construction or not.
-
-=item set_method_base(VALUE)
-
-Set the method base name. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_method_base()
-
-Returns the method base name.
-
 =item set_perl_bean(VALUE)
 
-Set the PerlBean to which this attribute belongs. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+This method is inherited from package C<PerlBean::Method::Factory>. Set the PerlBean to which this method factory belongs. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -227,17 +199,25 @@ Set the PerlBean to which this attribute belongs. C<VALUE> is the value. On erro
 
 =back
 
-=item get_perl_bean()
-
-Returns the PerlBean to which this attribute belongs.
-
 =item set_short_description(VALUE)
 
 Set the attribute description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
-=item get_short_description()
+=item type()
 
-Returns the attribute description.
+Determines and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+
+=item write_constructor_option_code()
+
+This is an interface method. Writes constructor code for the attribute option.
+
+=item write_constructor_option_doc()
+
+This is an interface method. Writes constructor documentation for the attribute option.
+
+=item write_default_value()
+
+This is an interface method. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =back
 
@@ -262,6 +242,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -272,6 +253,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: November 2002
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -303,14 +285,6 @@ Boston, MA 02111-1307 USA
 
 =cut
 
-sub new {
-    my $class = shift;
-
-    my $self = {};
-    bless( $self, ( ref($class) || $class ) );
-    return( $self->_initialize(@_) );
-}
-
 sub _initialize {
     my $self = shift;
     my $opt = defined($_[0]) ? shift : {};
@@ -318,9 +292,18 @@ sub _initialize {
     # Check $opt
     ref($opt) eq 'HASH' || throw Error::Simple("ERROR: PerlBean::Attribute::_initialize, first argument must be 'HASH' reference.");
 
-    # attribute_name, SINGLE, mandatory
-    exists( $opt->{attribute_name} ) || throw Error::Simple("ERROR: PerlBean::Attribute::_initialize, option 'attribute_name' is mandatory.");
-    $self->set_attribute_name( $opt->{attribute_name} );
+    # Legacy support for attribute_name
+    if ( exists( $opt->{attribute_name} ) ) {
+        $LEGACY_COUNT++;
+        if ( exists( $opt->{method_factory_name} ) ) {
+            ( $LEGACY_COUNT < 4 ) && print STDERR "WARNING: PerlBean::Attribute::_initialize, you use both attributes named 'attribute_name' and 'method_factory_name'. Attribute named 'attribute_name' is discarded. This warning will be discontinued from the 4th of April 2004 on. Change your code and remove the 'attribute_name' attribute.\nNOW!\n";
+        }
+        else {
+            $opt->{method_factory_name} = $opt->{attribute_name};
+            ( $LEGACY_COUNT < 4 ) && print STDERR "WARNING: PerlBean::Attribute::_initialize, attribute named 'attribute_name' has legacy support which will be discontinued from the 4th of April 2004 on. Change your code to use the 'method_factory_name' attribute.\nNOW!\n";
+        }
+        ( $LEGACY_COUNT == 3 ) && print STDERR "Oh bother...\n";
+    }
 
     # default_value, SINGLE
     exists( $opt->{default_value} ) && $self->set_default_value( $opt->{default_value} );
@@ -337,312 +320,17 @@ sub _initialize {
     # method_base, SINGLE
     exists( $opt->{method_base} ) && $self->set_method_base( $opt->{method_base} );
 
-    # perl_bean, SINGLE
-    exists( $opt->{perl_bean} ) && $self->set_perl_bean( $opt->{perl_bean} );
-
     # short_description, SINGLE
     exists( $opt->{short_description} ) && $self->set_short_description( $opt->{short_description} );
+
+    # Call the superclass' _initialize
+    $self->SUPER::_initialize($opt);
 
     # Return $self
     return($self);
 }
 
-sub get_overloaded_attribute {
-    my $self = shift;
-
-    # No attribute found if no collection defined
-    defined( $self->get_perl_bean() ) || return(undef);
-    defined( $self->get_perl_bean()->get_collection() ) || return(undef);
-
-    # Look for the attribute in super classes
-    foreach my $super_pkg ( $self->get_perl_bean()->get_base() ) {
-        # Get the super class bean
-        my $super_bean = ( $self->get_perl_bean()->get_collection()->values_perl_bean($super_pkg) )[0];
-
-        # If the super class bean has no bean in the collection then no attribute is found
-        defined($super_bean) || return(undef);
-
-        # See if the super class bean has an attribute
-        my $attr_over = $super_bean->get_overloaded_attribute( $self, {
-            $self->get_perl_bean()->get_package() => 1,
-        } );
-
-        # Return the overloaded bean if found
-        defined($attr_over) && return($attr_over);
-    }
-
-    # Nothing found
-    return(undef);
-}
-
-sub get_package {
-    my $self = shift;
-
-    defined( $self->get_perl_bean() ) && return( $self->get_perl_bean()->get_package() );
-    return('main');
-}
-
-sub get_package_us {
-    my $self = shift;
-
-    my $pkg = $self->get_package();
-    $pkg =~ s/:+/_/g;
-    return($pkg);
-}
-
-sub type {
-    my $self = shift;
-
-    $self->isa('PerlBean::Attribute::Boolean') && return('BOOLEAN');
-    $self->isa('PerlBean::Attribute::Multi') && return('MULTI');
-    $self->isa('PerlBean::Attribute::Single') && return('SINGLE');
-}
-
-sub write_default_value {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_default_value, call this method in a subclass that has implemented it.");
-}
-
-sub write_doc_clauses {
-    my $self = shift;
-    my $fh = shift;
-
-    return if ( ! scalar( $self->values_allow_isa() ) && ! scalar( $self->values_allow_ref() ) && ! scalar( $self->values_allow_rx() ) && ! scalar( $self->values_allow_value() ) );
-
-    $fh->print(<<EOF);
-\=over
-
-EOF
-
-    $self->write_doc_clauses_allow_isa($fh, @_);
-    $self->write_doc_clauses_allow_ref($fh, @_);
-    $self->write_doc_clauses_allow_rx($fh, @_);
-    $self->write_doc_clauses_allow_value($fh, @_);
-
-    $fh->print(<<EOF);
-\=back
-
-EOF
-}
-
-sub write_doc_inherit_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_doc_inherit_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_doc_init {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_doc_init, call this method in a subclass that has implemented it.");
-}
-
-sub write_doc_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_doc_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_methods {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_methods, call this method in a subclass that has implemented it.");
-}
-
-sub write_opt_init {
-    throw Error::Simple("ERROR: PerlBean::Attribute::write_opt_init, call this method in a subclass that has implemented it.");
-}
-
-sub set_attribute_name {
-    my $self = shift;
-    my $val = shift;
-
-    # Value for 'attribute_name' is not allowed to be empty
-    defined($val) || throw Error::Simple("ERROR: PerlBean::Attribute::set_attribute_name, value may not be empty.");
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'attribute_name', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_attribute_name, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{attribute_name} = $val;
-}
-
-sub get_attribute_name {
-    my $self = shift;
-
-    return( $self->{PerlBean_Attribute}{attribute_name} );
-}
-
-sub set_default_value {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'default_value', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_default_value, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{default_value} = $val;
-}
-
-sub get_default_value {
-    my $self = shift;
-
-    return( $self->{PerlBean_Attribute}{default_value} );
-}
-
-sub set_documented {
-    my $self = shift;
-
-    if (shift) {
-        $self->{PerlBean_Attribute}{documented} = 1;
-    }
-    else {
-        $self->{PerlBean_Attribute}{documented} = 0;
-    }
-}
-
-sub is_documented {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Attribute}{documented} ) {
-        return(1);
-    }
-    else {
-        return(0);
-    }
-}
-
-sub set_exception_class {
-    my $self = shift;
-    my $val = shift;
-
-    # Value for 'exception_class' is not allowed to be empty
-    defined($val) || throw Error::Simple("ERROR: PerlBean::Attribute::set_exception_class, value may not be empty.");
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'exception_class', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_exception_class, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{exception_class} = $val;
-}
-
-sub get_exception_class {
-    my $self = shift;
-
-    return( $self->{PerlBean_Attribute}{exception_class} );
-}
-
-sub set_mandatory {
-    my $self = shift;
-
-    if (shift) {
-        $self->{PerlBean_Attribute}{mandatory} = 1;
-    }
-    else {
-        $self->{PerlBean_Attribute}{mandatory} = 0;
-    }
-}
-
-sub is_mandatory {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Attribute}{mandatory} ) {
-        return(1);
-    }
-    else {
-        return(0);
-    }
-}
-
-sub set_method_base {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'method_base', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_method_base, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{method_base} = $val;
-}
-
-sub get_method_base {
-    my $self = shift;
-
-    defined( $self->{PerlBean_Attribute}{method_base} ) && return( $self->{PerlBean_Attribute}{method_base} );
-
-    my $style = PerlBean::Style->instance();
-    return( &{$AN2MBF}( $self->get_attribute_name() ) );
-}
-
-sub set_perl_bean {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'perl_bean', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_perl_bean, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{perl_bean} = $val;
-}
-
-sub get_perl_bean {
-    my $self = shift;
-
-    return( $self->{PerlBean_Attribute}{perl_bean} );
-}
-
-sub set_short_description {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'short_description', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_short_description, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Attribute}{short_description} = $val;
-}
-
-sub get_short_description {
-    my $self = shift;
-
-    return( $self->{PerlBean_Attribute}{short_description} );
-}
-
-sub _value_is_allowed {
-    my $name = shift;
-
-    # Value is allowed if no ALLOW clauses exist for the named attribute
-    if ( ! exists( $ALLOW_ISA{$name} ) && ! exists( $ALLOW_REF{$name} ) && ! exists( $ALLOW_RX{$name} ) && ! exists( $ALLOW_VALUE{$name} ) ) {
-        return(1);
-    }
-
-    # At this point, all values in @_ must to be allowed
-    CHECK_VALUES:
-    foreach my $val (@_) {
-        # Check ALLOW_ISA
-        if ( ref($val) && exists( $ALLOW_ISA{$name} ) ) {
-            foreach my $class ( @{ $ALLOW_ISA{$name} } ) {
-                &UNIVERSAL::isa( $val, $class ) && next CHECK_VALUES;
-            }
-        }
-
-        # Check ALLOW_REF
-        if ( ref($val) && exists( $ALLOW_REF{$name} ) ) {
-            exists( $ALLOW_REF{$name}{ ref($val) } ) && next CHECK_VALUES;
-        }
-
-        # Check ALLOW_RX
-        if ( defined($val) && ! ref($val) && exists( $ALLOW_RX{$name} ) ) {
-            foreach my $rx ( @{ $ALLOW_RX{$name} } ) {
-                $val =~ /$rx/ && next CHECK_VALUES;
-            }
-        }
-
-        # Check ALLOW_VALUE
-        if ( ! ref($val) && exists( $ALLOW_VALUE{$name} ) ) {
-            exists( $ALLOW_VALUE{$name}{$val} ) && next CHECK_VALUES;
-        }
-
-        # We caught a not allowed value
-        return(0);
-    }
-
-    # OK, all values are allowed
-    return(1);
-}
-
-sub esc_apos {
+sub _esc_apos {
     my $self = shift;
 
     my @in = @_;
@@ -665,7 +353,7 @@ sub esc_apos {
     }
 }
 
-sub esc_aq {
+sub _esc_aq {
     my $self = shift;
 
     my $do_quote = 0;
@@ -677,14 +365,22 @@ sub esc_aq {
     }
 
     if (wantarray) {
-        return ( $do_quote ? ( $self->esc_quote(@_) ) : ( $self->esc_apos(@_) ) );
+        return (
+            $do_quote ?
+                ( $self->_esc_quote(@_) ) :
+                ( $self->_esc_apos(@_) )
+        );
     }
     else {
-        return ( $do_quote ? scalar( $self->esc_quote(@_) ) : scalar($self->esc_apos(@_) ) );
+        return (
+            $do_quote ?
+                scalar( $self->_esc_quote(@_) ) :
+                scalar( $self->_esc_apos(@_) )
+        );
     }
 }
 
-sub esc_quote {
+sub _esc_quote {
     my $self = shift;
 
     my @in = @_;
@@ -712,5 +408,241 @@ sub esc_quote {
     else {
         return( join( ', ', @el ) );
     }
+}
+
+sub _get_overloaded_attribute {
+    my $self = shift;
+
+    # No attribute found if no collection defined
+    defined( $self->get_perl_bean() ) || return(undef);
+    defined( $self->get_perl_bean()->get_collection() ) || return(undef);
+
+    # Look for the attribute in super classes
+    foreach my $super_pkg ( $self->get_perl_bean()->get_base() ) {
+        # Get the super class bean
+        my $super_bean = ( $self->get_perl_bean()->get_collection()->
+                                            values_perl_bean($super_pkg) )[0];
+
+        # If the super class bean has no bean in the collection then no
+        # attribute is found
+        defined($super_bean) || return(undef);
+
+        # See if the super class bean has an attribute
+        my $attr_over = $super_bean->_get_overloaded_attribute( $self, {
+            $self->get_perl_bean()->get_package() => 1,
+        } );
+
+        # Return the overloaded bean if found
+        defined($attr_over) && return($attr_over);
+    }
+
+    # Nothing found
+    return(undef);
+}
+
+sub _value_is_allowed {
+    return(1);
+}
+
+sub create_methods {
+    throw Error::Simple("ERROR: PerlBean::Attribute::create_methods, call this method in a subclass that has implemented it.");
+}
+
+sub get_default_value {
+    my $self = shift;
+
+    return( $self->{PerlBean_Attribute}{default_value} );
+}
+
+sub get_exception_class {
+    my $self = shift;
+
+    return( $self->{PerlBean_Attribute}{exception_class} );
+}
+
+sub get_method_base {
+    my $self = shift;
+
+    defined( $self->{PerlBean_Attribute}{method_base} ) && return( $self->{PerlBean_Attribute}{method_base} );
+
+    my $style = PerlBean::Style->instance();
+    return( &{$AN2MBF}( $self->get_method_factory_name() ) );
+}
+
+sub get_package {
+    my $self = shift;
+
+    defined( $self->get_perl_bean() ) || return('main');
+    return( $self->get_perl_bean()->get_package() );
+}
+
+sub get_package_us {
+    my $self = shift;
+
+    my $pkg = $self->get_package();
+    $pkg =~ s/:+/_/g;
+    return($pkg);
+}
+
+sub get_short_description {
+    my $self = shift;
+
+    return( $self->{PerlBean_Attribute}{short_description} );
+}
+
+sub is_documented {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Attribute}{documented} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub is_mandatory {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Attribute}{mandatory} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub mk_doc_clauses {
+    my $self = shift;
+
+    return('') if ( ! scalar( $self->values_allow_isa() ) &&
+        ! scalar( $self->values_allow_ref() ) &&
+        ! scalar( $self->values_allow_rx() ) &&
+        ! scalar( $self->values_allow_value() )
+    );
+
+    # Make the clauses for documentation
+    my $doc = <<EOF;
+\=over
+
+EOF
+
+    $doc .= $self->mk_doc_clauses_allow_isa(@_);
+    $doc .= $self->mk_doc_clauses_allow_ref(@_);
+    $doc .= $self->mk_doc_clauses_allow_rx(@_);
+    $doc .= $self->mk_doc_clauses_allow_value(@_);
+
+    $doc .= <<EOF;
+\=back
+
+EOF
+
+    # Return the clauses for documentation
+    return($doc);
+}
+
+sub set_default_value {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'default_value', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_default_value, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Attribute}{default_value} = $val;
+}
+
+sub set_documented {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Attribute}{documented} = 1;
+    }
+    else {
+        $self->{PerlBean_Attribute}{documented} = 0;
+    }
+}
+
+sub set_exception_class {
+    my $self = shift;
+    my $val = shift;
+
+    # Value for 'exception_class' is not allowed to be empty
+    defined($val) || throw Error::Simple("ERROR: PerlBean::Attribute::set_exception_class, value may not be empty.");
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'exception_class', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_exception_class, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Attribute}{exception_class} = $val;
+}
+
+sub set_mandatory {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Attribute}{mandatory} = 1;
+    }
+    else {
+        $self->{PerlBean_Attribute}{mandatory} = 0;
+    }
+}
+
+sub set_method_base {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'method_base', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_method_base, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Attribute}{method_base} = $val;
+}
+
+sub set_short_description {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'short_description', $val ) || throw Error::Simple("ERROR: PerlBean::Attribute::set_short_description, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Attribute}{short_description} = $val;
+}
+
+sub type {
+    my $self = shift;
+
+    $self->isa('PerlBean::Attribute::Boolean') && return('BOOLEAN');
+    $self->isa('PerlBean::Attribute::Multi') && return('MULTI');
+    $self->isa('PerlBean::Attribute::Single') && return('SINGLE');
+}
+
+sub write_allow_isa {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_allow_isa, call this method in a subclass that has implemented it.");
+}
+
+sub write_allow_ref {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_allow_ref, call this method in a subclass that has implemented it.");
+}
+
+sub write_allow_rx {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_allow_rx, call this method in a subclass that has implemented it.");
+}
+
+sub write_allow_value {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_allow_value, call this method in a subclass that has implemented it.");
+}
+
+sub write_constructor_option_code {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_constructor_option_code, call this method in a subclass that has implemented it.");
+}
+
+sub write_constructor_option_doc {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_constructor_option_doc, call this method in a subclass that has implemented it.");
+}
+
+sub write_default_value {
+    throw Error::Simple("ERROR: PerlBean::Attribute::write_default_value, call this method in a subclass that has implemented it.");
 }
 

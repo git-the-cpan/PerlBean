@@ -50,10 +50,6 @@ Options for C<OPT_HASH_REF> passed to package B<C<PerlBean::Attribute>> may incl
 
 =over
 
-=item B<C<attribute_name>>
-
-Passed to L<set_attribute_name()>. Mandatory option.
-
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
@@ -69,6 +65,10 @@ Passed to L<set_mandatory()>. Defaults to B<0>.
 =item B<C<method_base>>
 
 Passed to L<set_method_base()>.
+
+=item B<C<method_factory_name>>
+
+Passed to L<set_method_factory_name()>. Mandatory option.
 
 =item B<C<perl_bean>>
 

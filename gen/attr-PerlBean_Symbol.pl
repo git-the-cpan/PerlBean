@@ -6,41 +6,46 @@ push(@::bean_desc, {
         package => 'PerlBean::Symbol',
         use_perl_version => 5.005,
         description => <<EOF,
-C<PerlBean::Symbol> allows to specify, declare, assign an export a sybol from a C<PerlBean>.
+C<PerlBean::Symbol> allows to specify, declare, assign an export a symbol from a C<PerlBean>.
 EOF
         short_description => 'Symbol in a Perl bean',
         synopsis => &get_syn(),
     },
     attr_opt => [
         {
-            attribute_name => 'declared',
+            method_factory_name => 'declared',
             type => 'BOOLEAN',
             default_value => 1,
             short_description => 'the symbol is to be declared with C<our>',
         },
         {
-            attribute_name => 'export_tag',
+            method_factory_name => 'export_tag',
             type => 'MULTI',
             unique => 1,
             short_description => 'the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default',
             allow_rx => [ qw(^\S*$) ],
         },
         {
-            attribute_name => 'symbol_name',
+            method_factory_name => 'symbol_name',
             short_description => 'the symbol\'s name (e.g. C<$var> or C<@list>)',
             allow_rx => [ qw(^\S+$) ],
         },
         {
-            attribute_name => 'assignment',
+            method_factory_name => 'assignment',
             short_description => 'the value assigned to the symbol during declaration',
         },
         {
-            attribute_name => 'comment',
+            method_factory_name => 'comment',
             short_description => 'the comment for the symbol declaration',
         },
         {
-            attribute_name => 'description',
+            method_factory_name => 'description',
             short_description => 'the description of the symbol',
+        },
+        {
+            method_factory_name => 'volatile',
+            type => 'BOOLEAN',
+            short_description => 'the symbol is volatile',
         },
     ],
     meth_opt => [

@@ -10,11 +10,19 @@ push(@::bean_desc, {
 C<PerlBean::Dependency::Require> is a class to express C<require> dependencies to classes/modules/files in a C<PerlBean>.
 EOF
         short_description => 'Require dependency in a Perl bean',
-        synopsis => "TODO.\n",
+        synopsis => "TODO\n",
     },
     meth_opt => [
         {
             method_name => 'write',
+            body => <<'EOF',
+    my $self = shift;
+    my $fh = shift;
+
+    my $dn = $self->get_dependency_name();
+
+    $fh->print( "require $dn;\n" )
+EOF
         },
     ],
 } );

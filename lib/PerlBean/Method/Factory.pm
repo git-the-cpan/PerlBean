@@ -1,7 +1,6 @@
-package PerlBean::Described::ExportTag;
+package PerlBean::Method::Factory;
 
 use 5.005;
-use base qw( PerlBean::Described );
 use strict;
 use warnings;
 use AutoLoader qw(AUTOLOAD);
@@ -9,6 +8,7 @@ use Error qw(:try);
 
 # Used by _value_is_allowed
 our %ALLOW_ISA = (
+    'perl_bean' => [ 'PerlBean' ],
 );
 
 # Used by _value_is_allowed
@@ -17,7 +17,7 @@ our %ALLOW_REF = (
 
 # Used by _value_is_allowed
 our %ALLOW_RX = (
-    'export_tag_name' => [ '^\w+$' ],
+    'method_factory_name' => [ '^\w+$' ],
 );
 
 # Used by _value_is_allowed
@@ -33,19 +33,19 @@ __END__
 
 =head1 NAME
 
-PerlBean::Described::ExportTag - Tag description
+PerlBean::Method::Factory - contains bean method factory information
 
 =head1 SYNOPSIS
 
-TODO
+None. This is an abstract class.
 
 =head1 ABSTRACT
 
-Generic described object
+Abstract PerlBean method factory information
 
 =head1 DESCRIPTION
 
-C<PerlBean::Described::ExportTag> describes export tags for pod generation in C<PerlBean> objects.
+C<PerlBean::Method::Factory> abstract class for method factory information.
 
 =head1 CONSTRUCTOR
 
@@ -53,25 +53,19 @@ C<PerlBean::Described::ExportTag> describes export tags for pod generation in C<
 
 =item new(OPT_HASH_REF)
 
-Creates a new C<PerlBean::Described::ExportTag> object. C<OPT_HASH_REF> is a hash reference used to pass initialization options. C<OPT_HASH_REF> is mandatory. On error an exception C<Error::Simple> is thrown.
+Creates a new C<PerlBean::Method::Factory> object. C<OPT_HASH_REF> is a hash reference used to pass initialization options. C<OPT_HASH_REF> is mandatory. On error an exception C<Error::Simple> is thrown.
 
 Options for C<OPT_HASH_REF> may include:
 
 =over
 
-=item B<C<export_tag_name>>
+=item B<C<method_factory_name>>
 
-Passed to L<set_export_tag_name()>. Mandatory option.
+Passed to L<set_method_factory_name()>. Mandatory option.
 
-=back
+=item B<C<perl_bean>>
 
-Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Described>> may include:
-
-=over
-
-=item B<C<description>>
-
-Passed to L<set_description()>.
+Passed to L<set_perl_bean()>.
 
 =back
 
@@ -81,21 +75,21 @@ Passed to L<set_description()>.
 
 =over
 
-=item get_description()
+=item create_methods()
 
-This method is inherited from package C<PerlBean::Described>. Returns the description.
+This is an interface method. Returns a list of C<PerlBean::Attribute::Method> objects.
 
-=item get_export_tag_name()
+=item get_method_factory_name()
 
-Returns tag's name.
+Returns method factory's name.
 
-=item set_description(VALUE)
+=item get_perl_bean()
 
-This method is inherited from package C<PerlBean::Described>. Set the description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+Returns the PerlBean to which this method factory belongs.
 
-=item set_export_tag_name(VALUE)
+=item set_method_factory_name(VALUE)
 
-Set tag's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+Set method factory's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -104,6 +98,22 @@ Set tag's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an
 =over
 
 =item ^\w+$
+
+=back
+
+=back
+
+=item set_perl_bean(VALUE)
+
+Set the PerlBean to which this method factory belongs. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must be a (sub)class of:
+
+=over
+
+=item PerlBean
 
 =back
 
@@ -130,9 +140,9 @@ L<PerlBean::Dependency::Import>,
 L<PerlBean::Dependency::Require>,
 L<PerlBean::Dependency::Use>,
 L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -142,8 +152,8 @@ None known (yet.)
 
 =head1 HISTORY
 
-First development: March 2003
-Last update: September 2003
+First development: April 2003
+Last update: April 2003
 
 =head1 AUTHOR
 
@@ -175,19 +185,27 @@ Boston, MA 02111-1307 USA
 
 =cut
 
+sub new {
+    my $class = shift;
+
+    my $self = {};
+    bless( $self, ( ref($class) || $class ) );
+    return( $self->_initialize(@_) );
+}
+
 sub _initialize {
     my $self = shift;
     my $opt = defined($_[0]) ? shift : {};
 
     # Check $opt
-    ref($opt) eq 'HASH' || throw Error::Simple("ERROR: PerlBean::Described::ExportTag::_initialize, first argument must be 'HASH' reference.");
+    ref($opt) eq 'HASH' || throw Error::Simple("ERROR: PerlBean::Method::Factory::_initialize, first argument must be 'HASH' reference.");
 
-    # export_tag_name, SINGLE, mandatory
-    exists( $opt->{export_tag_name} ) || throw Error::Simple("ERROR: PerlBean::Described::ExportTag::_initialize, option 'export_tag_name' is mandatory.");
-    $self->set_export_tag_name( $opt->{export_tag_name} );
+    # method_factory_name, SINGLE, mandatory
+    exists( $opt->{method_factory_name} ) || throw Error::Simple("ERROR: PerlBean::Method::Factory::_initialize, option 'method_factory_name' is mandatory.");
+    $self->set_method_factory_name( $opt->{method_factory_name} );
 
-    # Call the superclass' _initialize
-    $self->SUPER::_initialize($opt);
+    # perl_bean, SINGLE
+    exists( $opt->{perl_bean} ) && $self->set_perl_bean( $opt->{perl_bean} );
 
     # Return $self
     return($self);
@@ -236,23 +254,44 @@ sub _value_is_allowed {
     return(1);
 }
 
-sub get_export_tag_name {
-    my $self = shift;
-
-    return( $self->{PerlBean_Described_ExportTag}{export_tag_name} );
+sub create_methods {
+    throw Error::Simple("ERROR: PerlBean::Method::Factory::create_methods, call this method in a subclass that has implemented it.");
 }
 
-sub set_export_tag_name {
+sub get_method_factory_name {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method_Factory}{method_factory_name} );
+}
+
+sub get_perl_bean {
+    my $self = shift;
+
+    return( $self->{PerlBean_Method_Factory}{perl_bean} );
+}
+
+sub set_method_factory_name {
     my $self = shift;
     my $val = shift;
 
-    # Value for 'export_tag_name' is not allowed to be empty
-    defined($val) || throw Error::Simple("ERROR: PerlBean::Described::ExportTag::set_export_tag_name, value may not be empty.");
+    # Value for 'method_factory_name' is not allowed to be empty
+    defined($val) || throw Error::Simple("ERROR: PerlBean::Method::Factory::set_method_factory_name, value may not be empty.");
 
     # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'export_tag_name', $val ) || throw Error::Simple("ERROR: PerlBean::Described::ExportTag::set_export_tag_name, the specified value '$val' is not allowed.");
+    &_value_is_allowed( 'method_factory_name', $val ) || throw Error::Simple("ERROR: PerlBean::Method::Factory::set_method_factory_name, the specified value '$val' is not allowed.");
 
     # Assignment
-    $self->{PerlBean_Described_ExportTag}{export_tag_name} = $val;
+    $self->{PerlBean_Method_Factory}{method_factory_name} = $val;
+}
+
+sub set_perl_bean {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'perl_bean', $val ) || throw Error::Simple("ERROR: PerlBean::Method::Factory::set_perl_bean, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Method_Factory}{perl_bean} = $val;
 }
 

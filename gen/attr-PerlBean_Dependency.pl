@@ -13,9 +13,14 @@ EOF
     },
     attr_opt => [
         {
-            attribute_name => 'dependency_name',
+            method_factory_name => 'dependency_name',
             short_description => 'the dependency name',
             allow_rx => [ qw( ^.*[a-zA-Z].*$) ],
+        },
+        {
+            method_factory_name => 'volatile',
+            type => 'BOOLEAN',
+            short_description => 'the dependency is volatile',
         },
     ],
     meth_opt => [

@@ -23,12 +23,8 @@ our %ALLOW_RX = (
 our %ALLOW_VALUE = (
 );
 
-# Used by _value_is_allowed
-our %DEFAULT_VALUE = (
-);
-
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -66,6 +62,10 @@ Options for C<OPT_HASH_REF> may include:
 
 Passed to L<set_dependency_name()>.
 
+=item B<C<volatile>>
+
+Passed to L<set_volatile()>.
+
 =back
 
 =back
@@ -74,9 +74,13 @@ Passed to L<set_dependency_name()>.
 
 =over
 
-=item write(FILEHANDLE)
+=item get_dependency_name()
 
-This is an interface method. Writes code for the dependency. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns the dependency name.
+
+=item is_volatile()
+
+Returns whether the dependency is volatile or not.
 
 =item set_dependency_name(VALUE)
 
@@ -94,9 +98,13 @@ Set the dependency name. C<VALUE> is the value. On error an exception C<Error::S
 
 =back
 
-=item get_dependency_name()
+=item set_volatile(VALUE)
 
-Returns the dependency name.
+State that the dependency is volatile. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item write(FILEHANDLE)
+
+This is an interface method. Writes code for the dependency. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =back
 
@@ -121,6 +129,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -131,6 +140,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: March 2003
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -180,29 +190,11 @@ sub _initialize {
     # dependency_name, SINGLE
     exists( $opt->{dependency_name} ) && $self->set_dependency_name( $opt->{dependency_name} );
 
+    # volatile, BOOLEAN
+    exists( $opt->{volatile} ) && $self->set_volatile( $opt->{volatile} );
+
     # Return $self
     return($self);
-}
-
-sub write {
-    throw Error::Simple("ERROR: PerlBean::Dependency::write, call this method in a subclass that has implemented it.");
-}
-
-sub set_dependency_name {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'dependency_name', $val ) || throw Error::Simple("ERROR: PerlBean::Dependency::set_dependency_name, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Dependency}{dependency_name} = $val;
-}
-
-sub get_dependency_name {
-    my $self = shift;
-
-    return( $self->{PerlBean_Dependency}{dependency_name} );
 }
 
 sub _value_is_allowed {
@@ -246,5 +238,48 @@ sub _value_is_allowed {
 
     # OK, all values are allowed
     return(1);
+}
+
+sub get_dependency_name {
+    my $self = shift;
+
+    return( $self->{PerlBean_Dependency}{dependency_name} );
+}
+
+sub is_volatile {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Dependency}{volatile} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub set_dependency_name {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'dependency_name', $val ) || throw Error::Simple("ERROR: PerlBean::Dependency::set_dependency_name, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Dependency}{dependency_name} = $val;
+}
+
+sub set_volatile {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Dependency}{volatile} = 1;
+    }
+    else {
+        $self->{PerlBean_Dependency}{volatile} = 0;
+    }
+}
+
+sub write {
+    throw Error::Simple("ERROR: PerlBean::Dependency::write, call this method in a subclass that has implemented it.");
 }
 

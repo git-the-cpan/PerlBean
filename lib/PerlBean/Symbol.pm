@@ -25,13 +25,13 @@ our %ALLOW_RX = (
 our %ALLOW_VALUE = (
 );
 
-# Used by _value_is_allowed
+# Used by _initialize
 our %DEFAULT_VALUE = (
     'declared' => 1,
 );
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -47,13 +47,15 @@ PerlBean::Symbol - Symbol in a Perl bean
  use PerlBean;
  use PerlBean::Attribute::Factory;
  
- my $bean = PerlBean->new();
+ my $bean = PerlBean->new( {
+     package => 'MyPackage',
+ } );
  my $factory = PerlBean::Attribute::Factory->new();
  my $attr = $factory->create_attribute( {
-     attribute_name => 'true',
+     method_factory_name => 'true',
      short_description => 'something is true',
  } );
- $bean->add_attribute($attr);
+ $bean->add_method_factory($attr);
  
  use IO::File;
  -d 'tmp' || mkdir('tmp');
@@ -66,7 +68,7 @@ Symbol in a Perl bean
 
 =head1 DESCRIPTION
 
-C<PerlBean::Symbol> allows to specify, declare, assign an export a sybol from a C<PerlBean>.
+C<PerlBean::Symbol> allows to specify, declare, assign an export a symbol from a C<PerlBean>.
 
 =head1 CONSTRUCTOR
 
@@ -104,6 +106,10 @@ Passed to L<set_export_tag()>. Must be an C<ARRAY> reference.
 
 Passed to L<set_symbol_name()>.
 
+=item B<C<volatile>>
+
+Passed to L<set_volatile()>.
+
 =back
 
 =back
@@ -112,61 +118,9 @@ Passed to L<set_symbol_name()>.
 
 =over
 
-=item write(FILEHANDLE)
-
-Writes the code for the symbol. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item set_assignment(VALUE)
-
-Set the value assigned to the symbol during declaration. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_assignment()
-
-Returns the value assigned to the symbol during declaration.
-
-=item set_comment(VALUE)
-
-Set the comment for the symbol declaration. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_comment()
-
-Returns the comment for the symbol declaration.
-
-=item set_declared(VALUE)
-
-State that the symbol is to be declared with C<our>. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
-
-=item is_declared()
-
-Returns whether the symbol is to be declared with C<our> or not.
-
-=item set_description(VALUE)
-
-Set the description of the symbol. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
-
-=item get_description()
-
-Returns the description of the symbol.
-
-=item set_export_tag(ARRAY)
-
-Set the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurences of the same element yield in the last occuring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
-
-=over
-
-=item The values in C<ARRAY> must match regular expression:
-
-=over
-
-=item ^\S*$
-
-=back
-
-=back
-
 =item add_export_tag(ARRAY)
 
-Add additional values on the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurences of the same element cause the last occurence to be inserted. On error an exception C<Error::Simple> is thrown.
+Add additional values on the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default. C<ARRAY> is the list value. The addition may not yield to multiple identical elements in the list. Hence, multiple occurrences of the same element cause the last occurrence to be inserted. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -188,9 +142,61 @@ Delete elements from the list of tags with which the symbol is exported. NOTE: T
 
 Returns the count of items in C<ARRAY> that are in the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default.
 
-=item values_export_tag()
+=item get_assignment()
 
-Returns an C<ARRAY> containing all values of the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default.
+Returns the value assigned to the symbol during declaration.
+
+=item get_comment()
+
+Returns the comment for the symbol declaration.
+
+=item get_description()
+
+Returns the description of the symbol.
+
+=item get_symbol_name()
+
+Returns the symbol's name (e.g. C<$var> or C<@list>).
+
+=item is_declared()
+
+Returns whether the symbol is to be declared with C<our> or not.
+
+=item is_volatile()
+
+Returns whether the symbol is volatile or not.
+
+=item set_assignment(VALUE)
+
+Set the value assigned to the symbol during declaration. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_comment(VALUE)
+
+Set the comment for the symbol declaration. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_declared(VALUE)
+
+State that the symbol is to be declared with C<our>. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item set_description(VALUE)
+
+Set the description of the symbol. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item set_export_tag(ARRAY)
+
+Set the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurrences of the same element yield in the last occurring element to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must match regular expression:
+
+=over
+
+=item ^\S*$
+
+=back
+
+=back
 
 =item set_symbol_name(VALUE)
 
@@ -208,9 +214,17 @@ Set the symbol's name (e.g. C<$var> or C<@list>). C<VALUE> is the value. On erro
 
 =back
 
-=item get_symbol_name()
+=item set_volatile(VALUE)
 
-Returns the symbol's name (e.g. C<$var> or C<@list>).
+State that the symbol is volatile. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item values_export_tag()
+
+Returns an C<ARRAY> containing all values of the list of tags with which the symbol is exported. NOTE: The C<default> tag lets the symbol be exported by default.
+
+=item write(FILEHANDLE)
+
+Writes the code for the symbol. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =back
 
@@ -236,6 +250,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>
 
 =head1 BUGS
@@ -245,6 +260,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: March 2003
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -315,173 +331,11 @@ sub _initialize {
     # symbol_name, SINGLE
     exists( $opt->{symbol_name} ) && $self->set_symbol_name( $opt->{symbol_name} );
 
+    # volatile, BOOLEAN
+    exists( $opt->{volatile} ) && $self->set_volatile( $opt->{volatile} );
+
     # Return $self
     return($self);
-}
-
-sub write {
-    my $self = shift;
-    my $fh = shift;
-
-    # Do nothing if symbol should not be declared
-    $self->is_declared() || return;
-
-    my $name = $self->get_symbol_name() || '';
-
-    my $comment = $self->get_comment() || '';
-
-    my $decl = $self->get_assignment() ?
-            "$AO=$AO" . $self->get_assignment() : ";\n";
-
-    $fh->print( "${comment}our ${name}${decl}\n" );
-}
-
-sub set_assignment {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'assignment', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_assignment, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Symbol}{assignment} = $val;
-}
-
-sub get_assignment {
-    my $self = shift;
-
-    return( $self->{PerlBean_Symbol}{assignment} );
-}
-
-sub set_comment {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'comment', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_comment, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Symbol}{comment} = $val;
-}
-
-sub get_comment {
-    my $self = shift;
-
-    return( $self->{PerlBean_Symbol}{comment} );
-}
-
-sub set_declared {
-    my $self = shift;
-
-    if (shift) {
-        $self->{PerlBean_Symbol}{declared} = 1;
-    }
-    else {
-        $self->{PerlBean_Symbol}{declared} = 0;
-    }
-}
-
-sub is_declared {
-    my $self = shift;
-
-    if ( $self->{PerlBean_Symbol}{declared} ) {
-        return(1);
-    }
-    else {
-        return(0);
-    }
-}
-
-sub set_description {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'description', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_description, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Symbol}{description} = $val;
-}
-
-sub get_description {
-    my $self = shift;
-
-    return( $self->{PerlBean_Symbol}{description} );
-}
-
-sub set_export_tag {
-    my $self = shift;
-
-    # Check if isas/refs/rxs/values are allowed
-    &_value_is_allowed( 'export_tag', @_ ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_export_tag, one or more specified value(s) '@_' is/are not allowed.");
-
-    # Empty list
-    $self->{PerlBean_Symbol}{export_tag} = {};
-
-    # Add values
-    foreach my $val (@_) {
-        $self->{PerlBean_Symbol}{export_tag}{$val} = $val;
-    }
-}
-
-sub add_export_tag {
-    my $self = shift;
-
-    # Check if isas/refs/rxs/values are allowed
-    &_value_is_allowed( 'export_tag', @_ ) || throw Error::Simple("ERROR: PerlBean::Symbol::add_export_tag, one or more specified value(s) '@_' is/are not allowed.");
-
-    # Add values
-    foreach my $val (@_) {
-        $self->{PerlBean_Symbol}{export_tag}{$val} = $val;
-    }
-}
-
-sub delete_export_tag {
-    my $self = shift;
-
-    # Delete values
-    my $del = 0;
-    foreach my $val (@_) {
-        exists( $self->{PerlBean_Symbol}{export_tag}{$val} ) || next;
-        delete( $self->{PerlBean_Symbol}{export_tag}{$val} );
-        $del ++;
-    }
-    return($del);
-}
-
-sub exists_export_tag {
-    my $self = shift;
-
-    # Count occurences
-    my $count = 0;
-    foreach my $val (@_) {
-        $count += exists( $self->{PerlBean_Symbol}{export_tag}{$val} );
-    }
-    return($count);
-}
-
-sub values_export_tag {
-    my $self = shift;
-
-    # Return all values
-    return( values( %{ $self->{PerlBean_Symbol}{export_tag} } ) );
-}
-
-sub set_symbol_name {
-    my $self = shift;
-    my $val = shift;
-
-    # Check if isa/ref/rx/value is allowed
-    &_value_is_allowed( 'symbol_name', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_symbol_name, the specified value '$val' is not allowed.");
-
-    # Assignment
-    $self->{PerlBean_Symbol}{symbol_name} = $val;
-}
-
-sub get_symbol_name {
-    my $self = shift;
-
-    return( $self->{PerlBean_Symbol}{symbol_name} );
 }
 
 sub _value_is_allowed {
@@ -525,5 +379,192 @@ sub _value_is_allowed {
 
     # OK, all values are allowed
     return(1);
+}
+
+sub add_export_tag {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'export_tag', @_ ) || throw Error::Simple("ERROR: PerlBean::Symbol::add_export_tag, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Add values
+    foreach my $val (@_) {
+        $self->{PerlBean_Symbol}{export_tag}{$val} = $val;
+    }
+}
+
+sub delete_export_tag {
+    my $self = shift;
+
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean_Symbol}{export_tag}{$val} ) || next;
+        delete( $self->{PerlBean_Symbol}{export_tag}{$val} );
+        $del ++;
+    }
+    return($del);
+}
+
+sub exists_export_tag {
+    my $self = shift;
+
+    # Count occurrences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean_Symbol}{export_tag}{$val} );
+    }
+    return($count);
+}
+
+sub get_assignment {
+    my $self = shift;
+
+    return( $self->{PerlBean_Symbol}{assignment} );
+}
+
+sub get_comment {
+    my $self = shift;
+
+    return( $self->{PerlBean_Symbol}{comment} );
+}
+
+sub get_description {
+    my $self = shift;
+
+    return( $self->{PerlBean_Symbol}{description} );
+}
+
+sub get_symbol_name {
+    my $self = shift;
+
+    return( $self->{PerlBean_Symbol}{symbol_name} );
+}
+
+sub is_declared {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Symbol}{declared} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub is_volatile {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Symbol}{volatile} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub set_assignment {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'assignment', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_assignment, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Symbol}{assignment} = $val;
+}
+
+sub set_comment {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'comment', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_comment, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Symbol}{comment} = $val;
+}
+
+sub set_declared {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Symbol}{declared} = 1;
+    }
+    else {
+        $self->{PerlBean_Symbol}{declared} = 0;
+    }
+}
+
+sub set_description {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'description', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_description, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Symbol}{description} = $val;
+}
+
+sub set_export_tag {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'export_tag', @_ ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_export_tag, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean_Symbol}{export_tag} = {};
+
+    # Add values
+    foreach my $val (@_) {
+        $self->{PerlBean_Symbol}{export_tag}{$val} = $val;
+    }
+}
+
+sub set_symbol_name {
+    my $self = shift;
+    my $val = shift;
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'symbol_name', $val ) || throw Error::Simple("ERROR: PerlBean::Symbol::set_symbol_name, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean_Symbol}{symbol_name} = $val;
+}
+
+sub set_volatile {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Symbol}{volatile} = 1;
+    }
+    else {
+        $self->{PerlBean_Symbol}{volatile} = 0;
+    }
+}
+
+sub values_export_tag {
+    my $self = shift;
+
+    # Return all values
+    return( values( %{ $self->{PerlBean_Symbol}{export_tag} } ) );
+}
+
+sub write {
+    my $self = shift;
+    my $fh = shift;
+
+    # Do nothing if symbol should not be declared
+    $self->is_declared() || return;
+
+    my $name = $self->get_symbol_name() || '';
+
+    my $comment = $self->get_comment() || '';
+
+    my $decl = $self->get_assignment() ?
+            "$AO=$AO" . $self->get_assignment() : ";\n";
+
+    $fh->print( "${comment}our ${name}${decl}\n" );
 }
 

@@ -8,7 +8,7 @@ use AutoLoader qw(AUTOLOAD);
 use Error qw(:try);
 
 # Package version
-our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -20,7 +20,7 @@ PerlBean::Dependency::Require - Require dependency in a Perl bean
 
 =head1 SYNOPSIS
 
-TODO.
+TODO
 
 =head1 ABSTRACT
 
@@ -46,6 +46,10 @@ Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Dependency>>
 
 Passed to L<set_dependency_name()>.
 
+=item B<C<volatile>>
+
+Passed to L<set_volatile()>.
+
 =back
 
 =back
@@ -54,19 +58,37 @@ Passed to L<set_dependency_name()>.
 
 =over
 
-=item write(FILEHANDLE)
+=item get_dependency_name()
 
-This method is an implementation from package C<'PerlBean::Dependency'>. Writes code for the dependency. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<PerlBean::Dependency>. Returns the dependency name.
 
-=back
+=item is_volatile()
 
-=head1 INHERITED METHODS FROM PerlBean::Dependency
+This method is inherited from package C<PerlBean::Dependency>. Returns whether the dependency is volatile or not.
+
+=item set_dependency_name(VALUE)
+
+This method is inherited from package C<PerlBean::Dependency>. Set the dependency name. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
 
 =over
 
-=item To access attribute named B<C<dependency_name>>:
+=item VALUE must match regular expression:
 
-set_dependency_name(), get_dependency_name()
+=over
+
+=item ^.*[a-zA-Z].*$
+
+=back
+
+=back
+
+=item set_volatile(VALUE)
+
+This method is inherited from package C<PerlBean::Dependency>. State that the dependency is volatile. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
+
+=item write(FILEHANDLE)
+
+This method is an implementation from package C<PerlBean::Dependency>. Writes code for the dependency. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =back
 
@@ -91,6 +113,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -101,6 +124,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: March 2003
+Last update: September 2003
 
 =head1 AUTHOR
 

@@ -7,7 +7,7 @@ use AutoLoader qw(AUTOLOAD);
 use Error qw(:try);
 
 # Package version
-our ( $VERSION ) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 1.0 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -24,15 +24,9 @@ PerlBean::Attribute::Factory - factory package to generate C<PerlBean::Attribute
  my $factory = PerlBean::Attribute::Factory->new();
  my $attr = $factory->create_attribute( {
      type => 'BOOLEAN',
-     attribute_name => 'true',
+     method_factory_name => 'true',
      short_description => 'something is true',
  } );
- 
- use IO::File;
- -d 'tmp' || mkdir('tmp');
- my $fh = IO::File->new('> tmp/PerlBean_Attribute_Factory.pl.out');
- $attr->write_methods($fh);
- $attr->write_doc_methods($fh);
 
 =head1 ABSTRACT
 
@@ -90,10 +84,6 @@ Options for C<OPT_HASH_REF> passed to package B<C<PerlBean::Attribute>> may incl
 
 =over
 
-=item B<C<attribute_name>>
-
-Passed to L<set_attribute_name()>. Mandatory option.
-
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
@@ -109,6 +99,10 @@ Passed to L<set_mandatory()>. Defaults to B<0>.
 =item B<C<method_base>>
 
 Passed to L<set_method_base()>.
+
+=item B<C<method_factory_name>>
+
+Passed to L<set_method_factory_name()>. Mandatory option.
 
 =item B<C<perl_bean>>
 
@@ -169,6 +163,7 @@ L<PerlBean::Described>,
 L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
+L<PerlBean::Method::Factory>,
 L<PerlBean::Style>,
 L<PerlBean::Symbol>
 
@@ -179,6 +174,7 @@ None known (yet.)
 =head1 HISTORY
 
 First development: November 2002
+Last update: September 2003
 
 =head1 AUTHOR
 
@@ -220,6 +216,10 @@ sub new {
 
 sub _initialize {
     my $self = shift;
+    my $opt = defined($_[0]) ? shift : {};
+
+    # Check $opt
+    ref($opt) eq 'HASH' || throw Error::Simple("ERROR: PerlBean::Attribute::Factory::_initialize, first argument must be 'HASH' reference.");
 
     # Return $self
     return($self);
