@@ -18,6 +18,7 @@ ok (1);
 use strict;
 use PerlBean;
 use PerlBean::Collection;
+use PerlBean::Method;
 use PerlBean::Attribute::Factory;
 
 # Bean description array
@@ -58,9 +59,13 @@ foreach my $bean_desc (@::bean_desc) {
 	my $bean = PerlBean->new ($bean_desc->{bean_opt});
 	foreach my $attr_opt (@{$bean_desc->{attr_opt}}) {
 		my $attr = $factory->createAttribute ($attr_opt);
-		$bean->addAttribute ($attr->getAttributeName (), $attr);
+		$bean->addAttribute ($attr);
 	}
-	$collection->addBean ($bean->getPackage (), $bean);
+	foreach my $meth_opt (@{$bean_desc->{meth_opt}}) {
+		my $meth = PerlBean::Method->new ($meth_opt);
+		$bean->addMethod ($meth);
+	}
+	$collection->addPerlBean ($bean);
 }
 
 # Revove the old tmp directory

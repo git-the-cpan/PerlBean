@@ -6,9 +6,9 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-use base qw (PerlBean::Attribute::Single);
+use base qw (PerlBean::Attribute);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 our $SUB = 'sub';
 
@@ -91,13 +91,49 @@ Passed to L<setShortDescription ()>.
 
 =over
 
-=item writeMethods (FILEHANDLE)
+=item getOverloadedAttribute ()
 
-Writes code for B<set> and B<is> methods.
+This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned
+
+=item getPackage ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+
+=item getPackageUS ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Calls C<getPackage ()> and replaces C<:+> with C <_>.
+
+=item type ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+
+=item writeDefaultValue (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocClauses (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute'>. Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInheritMethods (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...> and B<is...>.
+
+=item writeDocInit (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =item writeDocMethods (FILEHANDLE)
 
-Writes documenation for B<set> and B<is> methods.
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...> and B<is...>.
+
+=item writeMethods (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...> and B<is...>.
+
+=item writeOptInit (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =back
 
@@ -144,9 +180,11 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -162,7 +200,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -186,20 +224,20 @@ Boston, MA 02111-1307 USA
 
 =cut
 
-sub writeMethods {
+sub writeDefaultValue {
 	my $self = shift;
 	my $fh = shift;
 
-	$self->writeSetMethod ($fh);
-	$self->writeIsMethod ($fh);
-}
+	defined ($self->getDefaultValue ()) || return;
 
-sub writeDocMethods {
-	my $self = shift;
-	my $fh = shift;
-
-	$self->writeDocSetMethod ($fh);
-	$self->writeDocIsMethod ($fh);
+	my $an = $self->escQuote( $self->getAttributeName ());
+	my $dv = '0';
+	if ($self->getDefaultValue ()) {
+		$dv = 1;
+	}
+	$fh->print (<<EOF);
+\t$an => $dv,
+EOF
 }
 
 sub writeDocInheritMethods {
@@ -218,6 +256,84 @@ sub writeDocInheritMethods {
 $meth
 
 EOF
+}
+
+sub writeDocInit {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
+	my $def = '';
+	if (defined ($self->getDefaultValue ())) {
+		$def = ' Defaults to B<' . $self->getDefaultValue () . '>.';
+	}
+
+	$fh->print (<<EOF);
+\=item B<C<$an>>
+
+Passed to L<set$mb ()>.${mand}${def}
+
+EOF
+}
+
+sub writeDocMethods {
+	my $self = shift;
+	my $fh = shift;
+
+	$self->writeDocSetMethod ($fh);
+	$self->writeDocIsMethod ($fh);
+}
+
+sub writeMethods {
+	my $self = shift;
+	my $fh = shift;
+
+	$self->writeSetMethod ($fh);
+	$self->writeIsMethod ($fh);
+}
+
+sub writeOptInit {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $ec = $self->getExceptionClass ();
+	my $pkg = $self->getPackage ();
+
+	# Comment
+	$fh->print ("\t# $an, ", $self->type ());
+	$self->isMandatory () && $fh->print (', mandatory');
+	defined ($self->getDefaultValue ()) && $fh->print (', with default value');
+	$fh->print ("\n");
+
+	# isMandatory check
+	if ($self->isMandatory ()) {
+		$fh->print (<<EOF);
+	exists (\$opt->{$an}) || throw $ec ("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
+EOF
+	}
+
+	if ($self->isMandatory ()) {
+		$fh->print (<<EOF);
+	\$self->set$mb (\$opt->{$an});
+EOF
+	} else {
+		if (defined ($self->getDefaultValue ())) {
+		$fh->print (<<EOF);
+	\$self->set$mb (exists (\$opt->{$an}) ? \$opt->{$an} : \$DEFAULT_VALUE{$an});
+EOF
+		} else {
+		$fh->print (<<EOF);
+	exists (\$opt->{$an}) && \$self->set$mb (\$opt->{$an});
+EOF
+		}
+	}
+
+	# Empty line
+	$fh->print ("\n");
 }
 
 sub writeSetMethod {
@@ -249,7 +365,6 @@ sub writeDocSetMethod {
 	my $mb = $self->getMethodBase ();
 	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
 	my $def = defined ($self->getDefaultValue ()) ? ' Default value at initialization is C<' . $self->getDefaultValue () . '>.' : '';
-	my $empt = $self->isAllowEmpty () ? '' : ' C<VALUE> may not be C<undef>.';
 	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
 	my $attr_overl = $self->getOverloadedAttribute ();
 	my $overl = defined ($attr_overl) ? " B<NOTE:> Methods B<C<*$mb ()>> are overloaded from package C<". $attr_overl->getPerlBean ()->getPackage () .'>.': '';

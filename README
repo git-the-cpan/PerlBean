@@ -1,4 +1,4 @@
-PerlBean $Revision: 0.2.0.2 $
+PerlBean $Revision: 0.3 $
 =============================
 
 QUICK INSTALL/USAGE
@@ -50,7 +50,7 @@ AUTHOR
        Vincenzo Zocca
 
 COPYRIGHT
-       Copyright 2002 by Vincenzo Zocca
+       Copyright 2002, 2003 by Vincenzo Zocca
 
 LICENSE
 

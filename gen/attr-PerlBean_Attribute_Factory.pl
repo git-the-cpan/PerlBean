@@ -25,6 +25,13 @@ push (@::bean_desc, {
 		},
 		attr_opt => [
 		],
+		meth_opt => [
+			{
+				method_name => 'createAttribute',
+				parameter_description => 'OPT_HASH_REF',
+				description => 'TODO',
+			},
+		],
 	},
 );
 

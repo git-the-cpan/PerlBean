@@ -43,7 +43,9 @@ push (@::bean_desc, {
 				type => 'MULTI',
 				unique => 1,
 				associative => 1,
-				short_description => 'the list \'PerlBean::Attribute\' objects',
+				method_key => 1,
+				id_method => 'getAttributeName',
+				short_description => 'the list of \'PerlBean::Attribute\' objects',
 				allow_isa => [qw (PerlBean::Attribute)],
 			},
 			{
@@ -82,6 +84,16 @@ push (@::bean_desc, {
 				short_description => 'the software license for the PerlBean',
 			},
 			{
+				attribute_name => 'method',
+				type => 'MULTI',
+				unique => 1,
+				associative => 1,
+				method_key => 1,
+				id_method => 'getMethodName',
+				short_description => 'the list of \'PerlBean::Method\' objects',
+				allow_isa => [qw (PerlBean::Method)],
+			},
+			{
 				attribute_name => 'package',
 				allow_empty => 0,
 				default_value => 'main',
@@ -97,6 +109,38 @@ push (@::bean_desc, {
 				type => 'SINGLE',
 				allow_rx => [qw (.*)],
 				short_description => 'the synopsis for the PerlBean',
+			},
+		],
+		meth_opt => [
+			{
+				method_name => 'write',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the Perl class code to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
+			},
+			{
+				method_name => 'writeAllowIsaHash',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the C<%ALLOW_ISA> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
+			},
+			{
+				method_name => 'writeAllowRefHash',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the C<%ALLOW_REF> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
+			},
+			{
+				method_name => 'writeAllowRxHash',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the C<%ALLOW_RX> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
+			},
+			{
+				method_name => 'writeAllowValueHash',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the C<%ALLOW_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
+			},
+			{
+				method_name => 'writeDefaultValueHash',
+				parameter_description => 'FILEHANDLE',
+				description => 'Write the C<%DEFAULT_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.',
 			},
 		],
 	},

@@ -173,7 +173,7 @@ foreach my $attribute_class (@attribute_class) {
 	$attribute_class->{perl_bean} = $bean;
 	my $attribute = $factory->createAttribute ($attribute_class);
 	$attribute->{short_description} = $attribute->{attribute_name};
-	$bean->addAttribute ($attribute->getAttributeName (), $attribute);
+	$bean->addAttribute ($attribute);
 }
 
 my $fh = IO::File->new ('> tmp/TestPkg.pm');

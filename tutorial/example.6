@@ -11,7 +11,7 @@
 	type => 'BOOLEAN',
 	short_description => 'the generation of this code is easy',
   });
-  $bean->addAttribute ($attr->getAttributeName (), $attr);
+  $bean->addAttribute ($attr);
   $attr = PerlBean::Attribute::Factory->attribute ({
   	attribute_name => 'name',
   	allow_empty => 0,
@@ -20,13 +20,13 @@
 	type => 'SINGLE',
 	short_description => 'the object name',
   });
-  $bean->addAttribute ($attr->getAttributeName (), $attr);
+  $bean->addAttribute ($attr);
   $attr = PerlBean::Attribute::Factory->attribute ({
   	attribute_name => 'alias',
 	type => 'MULTI',
 	short_description => 'object aliases',
   });
-  $bean->addAttribute ($attr->getAttributeName (), $attr);
+  $bean->addAttribute ($attr);
   use IO::File;
   my $fh = IO::File->new ("> $0.pm");
   $bean->write ($fh);

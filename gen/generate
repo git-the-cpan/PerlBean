@@ -40,9 +40,9 @@ foreach my $bean_desc (@::bean_desc) {
 	my $bean = PerlBean->new ($bean_desc->{bean_opt});
 	foreach my $attr_opt (@{$bean_desc->{attr_opt}}) {
 		my $attr = $factory->createAttribute ($attr_opt);
-		$bean->addAttribute ($attr->getAttributeName (), $attr);
+		$bean->addAttribute ($attr);
 	}
-	$collection->addBean ($bean->getPackage (), $bean);
+	$collection->addPerlBean ($bean);
 }
 
 # Revove the old tmp directory

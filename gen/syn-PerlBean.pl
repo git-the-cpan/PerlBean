@@ -8,7 +8,7 @@ my $attr = $factory->createAttribute ({
 	attribute_name => 'true',
 	short_description => 'something is true',
 });
-$bean->addAttribute ($attr->getAttributeName (), $attr);
+$bean->addAttribute ($attr);
 
 use IO::File;
 -d 'tmp' || mkdir ('tmp');

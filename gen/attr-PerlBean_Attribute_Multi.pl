@@ -14,6 +14,29 @@ push (@::bean_desc, {
 		},
 		attr_opt => [
 		],
+		meth_opt => [
+			{
+				method_name => 'writeDocMethods',
+				description => '__SUPER_POD__ As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.',
+			},
+			{
+				method_name => 'writeMethods',
+				description => '__SUPER_POD__ As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.',
+			},
+			{
+				method_name => 'writeDocInheritMethods',
+				description => '__SUPER_POD__ As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.',
+			},
+			{
+				method_name => 'writeDefaultValue',
+			},
+			{
+				method_name => 'writeOptInit',
+			},
+			{
+				method_name => 'writeDocInit',
+			},
+		],
 	},
 );
 

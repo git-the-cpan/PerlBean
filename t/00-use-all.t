@@ -18,6 +18,7 @@ use PerlBean::Attribute::Multi::Unique::Ordered;
 use PerlBean::Attribute::Multi::Unique;
 use PerlBean::Attribute::Single;
 use PerlBean::Collection;
+use PerlBean::Method;
 
 ok(1); # If we made it this far, we're ok.
 

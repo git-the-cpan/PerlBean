@@ -25,18 +25,27 @@ push (@::bean_desc, {
 		},
 		attr_opt => [
 			{
-				attribute_name => 'bean',
+				attribute_name => 'perl_bean',
 				type => 'MULTI',
 				unique => 1,
 				associative => 1,
+				method_key => 1,
+				id_method => 'getPackage',
 				allow_isa => [qw (PerlBean)],
-				short_description => 'the list of beans in the collection',
+				short_description => 'the list of PerlBean objects in the collection',
 			},
 			{
 				attribute_name => 'license',
 				type => 'SINGLE',
 				allow_rx => [qw (.*)],
 				short_description => 'the software license for the PerlBean collection',
+			},
+		],
+		meth_opt => [
+			{
+				method_name => 'write',
+				parameter_description => 'DIRECTORY',
+				description => 'Write the hierarchy of Perl class code to C<DIRECTORY>. C<DIRECTORY> is a directory name. On error an exception C<Error::Simple> is thrown.',
 			},
 		],
 	},

@@ -6,7 +6,7 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 our %ALLOW_ISA = (
 	'perl_bean' => [ 'PerlBean' ],
@@ -91,6 +91,50 @@ Passed to L<setShortDescription ()>.
 
 =over
 
+=item getOverloadedAttribute ()
+
+Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned
+
+=item getPackage ()
+
+Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+
+=item getPackageUS ()
+
+Calls C<getPackage ()> and replaces C<:+> with C <_>.
+
+=item type ()
+
+Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+
+=item writeDefaultValue (FILEHANDLE)
+
+This is an interface method. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocClauses (FILEHANDLE)
+
+Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInheritMethods (FILEHANDLE)
+
+This is an interface method. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInit (FILEHANDLE)
+
+This is an interface method. Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocMethods (FILEHANDLE)
+
+This is an interface method. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeMethods (FILEHANDLE)
+
+This is an interface method. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeOptInit (FILEHANDLE)
+
+This is an interface method. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
 =item setAttributeName (VALUE)
 
 Set attribute's name. C<VALUE> is the value. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
@@ -171,34 +215,6 @@ Set the attribute description. C<VALUE> is the value. On error an exception C<Er
 
 Returns the attribute description.
 
-=item getPackage ()
-
-Returns package name.
-
-=item getPackageUS ()
-
-Returns package name with C<:+> replaces by C <_>.
-
-=item writeDefaultValue (FILEHANDLE)
-
-Write C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeOptInit (FILEHANDLE)
-
-Write C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeDocInit (FILEHANDLE)
-
-Write documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeMethods (FILEHANDLE)
-
-Write the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeDocMethods (FILEHANDLE)
-
-Write documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
 =back
 
 =head1 SEE ALSO
@@ -210,9 +226,11 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -228,7 +246,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -291,6 +309,103 @@ sub _initialize {
 
 	# Return $self
 	return ($self);
+}
+
+sub getOverloadedAttribute {
+	my $self = shift;
+
+	# No attribute found if no collection defined
+	defined ($self->getPerlBean ()) || return (undef);
+	defined ($self->getPerlBean ()->getCollection ()) || return (undef);
+
+	# Look for the attribute in super classes
+	foreach my $super_pkg ($self->getPerlBean ()->getBase ()) {
+		# Get the super class bean
+		my $super_bean = ($self->getPerlBean ()->getCollection ()->valuesBean ($super_pkg))[0];
+
+		# If the super class bean has no bean in the collection then no attribute is found
+		defined ($super_bean) || return (undef);
+
+		# See if the super class bean has an attribute
+		my $attr_over = $super_bean->getOverloadedAttribute ($self, {
+			$self->getPerlBean ()->getPackage () => 1,
+		});
+
+		# Return the overloaded bean if found
+		defined ($attr_over) && return ($attr_over);
+	}
+
+	# Nothing found
+	return (undef);
+}
+
+sub getPackage {
+	my $self = shift;
+
+	defined ($self->getPerlBean) && return ( $self->getPerlBean ()->getPackage ());
+	return ('main');
+}
+
+sub getPackageUS {
+	my $self = shift;
+
+	my $pkg = $self->getPackage ();
+	$pkg =~ s/:+/_/g;
+	return ($pkg);
+}
+
+sub type {
+	my $self = shift;
+
+	$self->isa ('PerlBean::Attribute::Boolean') && return ('BOOLEAN');
+	$self->isa ('PerlBean::Attribute::Multi') && return ('MULTI');
+	$self->isa ('PerlBean::Attribute::Single') && return ('SINGLE');
+}
+
+sub writeDefaultValue {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeDefaultValue, call this method in a subclass that has implemented it.");
+}
+
+sub writeDocClauses {
+	my $self = shift;
+	my $fh = shift;
+
+	return if (!scalar ($self->valuesAllowIsa ()) && !scalar ($self->valuesAllowRef ()) && !scalar ($self->valuesAllowRx ()) && !scalar ($self->valuesAllowValue ()));
+
+	$fh->print (<<EOF);
+\=over
+
+EOF
+
+	$self->writeDocClausesAllowIsa ($fh, @_);
+	$self->writeDocClausesAllowRef ($fh, @_);
+	$self->writeDocClausesAllowRx ($fh, @_);
+	$self->writeDocClausesAllowValue ($fh, @_);
+
+	$fh->print (<<EOF);
+\=back
+
+EOF
+}
+
+sub writeDocInheritMethods {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeDocInheritMethods, call this method in a subclass that has implemented it.");
+}
+
+sub writeDocInit {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeDocInit, call this method in a subclass that has implemented it.");
+}
+
+sub writeDocMethods {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeDocMethods, call this method in a subclass that has implemented it.");
+}
+
+sub writeMethods {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeMethods, call this method in a subclass that has implemented it.");
+}
+
+sub writeOptInit {
+	throw Error::Simple ("ERROR: PerlBean::Attribute::writeOptInit, call this method in a subclass that has implemented it.");
 }
 
 sub setAttributeName {
@@ -410,21 +525,6 @@ sub getPerlBean {
 	return ($self->{PerlBean_Attribute}{perl_bean});
 }
 
-sub getPackage {
-	my $self = shift;
-
-	defined ($self->getPerlBean) && return ( $self->getPerlBean ()->getPackage ());
-	return ('main');
-}
-
-sub getPackageUS {
-	my $self = shift;
-
-	my $pkg = $self->getPackage ();
-	$pkg =~ s/:+/_/g;
-	return ($pkg);
-}
-
 sub setShortDescription {
 	my $self = shift;
 	my $val = shift;
@@ -485,69 +585,20 @@ sub valueIsAllowed {
 	return (1);
 }
 
-sub getOverloadedAttribute {
+sub escQuote {
 	my $self = shift;
 
-	# No attribute found if no collection defined
-	defined ($self->getPerlBean ()) || return (undef);
-	defined ($self->getPerlBean ()->getCollection ()) || return (undef);
-
-	# Look for the attribute in super classes
-	foreach my $super_pkg ($self->getPerlBean ()->getBase ()) {
-		# Get the super class bean
-		my $super_bean = ($self->getPerlBean ()->getCollection ()->valuesBean ($super_pkg))[0];
-
-		# If the super class bean has no bean in the collection then no attribute is found
-		defined ($super_bean) || return (undef);
-
-		# See if the super class bean has an attribute
-		my $attr_over = $super_bean->getOverloadedAttribute ($self, {
-			$self->getPerlBean ()->getPackage () => 1,
-		});
-
-		# Return the overloaded bean if found
-		defined ($attr_over) && return ($attr_over);
+	my @in = @_;
+	my @el = ();
+	foreach my $el (@in) {
+		if ($el =~ /^[+-]?\d+$/) {
+			$el = (int ($el));
+		} else {
+			$el =~ s/'/\\'/g;
+			$el = '\'' . $el . '\'';
+		}
+		push (@el, $el);
 	}
-
-	# Nothing found
-	return (undef);
-}
-
-sub writeMethods {
-	throw Error::Simple ("ERROR: PerlBean::Attribute::writeMethods, call this method in a subclass that has implemented it.");
-}
-
-sub writeDocMethods {
-	throw Error::Simple ("ERROR: PerlBean::Attribute::writeDocMethods, call this method in a subclass that has implemented it.");
-}
-
-sub writeDocClauses {
-	my $self = shift;
-	my $fh = shift;
-
-	return if (!scalar ($self->valuesAllowIsa ()) && !scalar ($self->valuesAllowRef ()) && !scalar ($self->valuesAllowRx ()) && !scalar ($self->valuesAllowValue ()));
-
-	$fh->print (<<EOF);
-\=over
-
-EOF
-
-	$self->writeDocClausesAllowIsa ($fh, @_);
-	$self->writeDocClausesAllowRef ($fh, @_);
-	$self->writeDocClausesAllowRx ($fh, @_);
-	$self->writeDocClausesAllowValue ($fh, @_);
-
-	$fh->print (<<EOF);
-\=back
-
-EOF
-}
-
-sub type {
-	my $self = shift;
-
-	$self->isa ('PerlBean::Attribute::Boolean') && return ('BOOLEAN');
-	$self->isa ('PerlBean::Attribute::Multi') && return ('MULTI');
-	$self->isa ('PerlBean::Attribute::Single') && return ('SINGLE');
+	return (join (', ', @el));
 }
 

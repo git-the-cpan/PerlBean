@@ -6,11 +6,12 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 our %ALLOW_ISA = (
 	'attribute' => [ 'PerlBean::Attribute' ],
 	'collection' => [ 'PerlBean::Collection' ],
+	'method' => [ 'PerlBean::Method' ],
 );
 our %ALLOW_REF = (
 );
@@ -67,7 +68,7 @@ PerlBean - Package to generate bean like Perl modules
  	attribute_name => 'true',
  	short_description => 'something is true',
  });
- $bean->addAttribute ($attr->getAttributeName (), $attr);
+ $bean->addAttribute ($attr);
  
  use IO::File;
  -d 'tmp' || mkdir ('tmp');
@@ -134,6 +135,10 @@ Passed to L<setExported ()>. Defaults to B<0>.
 
 Passed to L<setLicense ()>.
 
+=item B<C<method>>
+
+Passed to L<setMethod ()>. Must be an C<ARRAY> reference.
+
 =item B<C<package>>
 
 Passed to L<setPackage ()>. Defaults to B<main>.
@@ -153,6 +158,30 @@ Passed to L<setSynopsis ()>.
 =head1 METHODS
 
 =over
+
+=item write (FILEHANDLE)
+
+Write the Perl class code to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item writeAllowIsaHash (FILEHANDLE)
+
+Write the C<%ALLOW_ISA> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item writeAllowRefHash (FILEHANDLE)
+
+Write the C<%ALLOW_REF> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item writeAllowRxHash (FILEHANDLE)
+
+Write the C<%ALLOW_RX> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item writeAllowValueHash (FILEHANDLE)
+
+Write the C<%ALLOW_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+
+=item writeDefaultValueHash (FILEHANDLE)
+
+Write the C<%DEFAULT_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 
 =item setAbstract (VALUE)
 
@@ -174,9 +203,9 @@ Set the PerlBean' abstract. C<VALUE> is the value. On error an exception C<Error
 
 Returns the PerlBean' abstract.
 
-=item setAttribute ([KEY, VALUE ...])
+=item setAttribute ([VALUE ...])
 
-Set the list 'PerlBean::Attribute' objects absolutely using keys/values. C<KEY, VALUE> are key/value pairs. 0 or more of these pairs may be supplied. Each key in is allowed to occur only once. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. On error an exception C<Error::Simple> is thrown.
+Set the list of 'PerlBean::Attribute' objects absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<getAttributeName ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -190,9 +219,9 @@ Set the list 'PerlBean::Attribute' objects absolutely using keys/values. C<KEY, 
 
 =back
 
-=item addAttribute ([KEY, VALUE ...])
+=item addAttribute ([VALUE ...])
 
-Add additional keys/values on the list 'PerlBean::Attribute' objects. C<KEY, VALUE> are key/value pairs. The addition may not yield to multiple identical keys in the list. Hence, multiple occurences of the same key cause the last occurence to be inserted. On error an exception C<Error::Simple> is thrown.
+Add additional values on the list of 'PerlBean::Attribute' objects. Each C<VALUE> is an object out of which the id is obtained through method C< ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
 
 =over
 
@@ -208,19 +237,19 @@ Add additional keys/values on the list 'PerlBean::Attribute' objects. C<KEY, VAL
 
 =item deleteAttribute (ARRAY)
 
-Delete elements from the list 'PerlBean::Attribute' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+Delete elements from the list of 'PerlBean::Attribute' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
 
 =item existsAttribute (ARRAY)
 
-Returns the count of items in C<ARRAY> that are in the list 'PerlBean::Attribute' objects.
+Returns the count of items in C<ARRAY> that are in the list of 'PerlBean::Attribute' objects.
 
 =item keysAttribute ()
 
-Returns an C<ARRAY> containing the keys of the list 'PerlBean::Attribute' objects.
+Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Attribute' objects.
 
 =item valuesAttribute ([KEY_ARRAY])
 
-Returns an C<ARRAY> containing the values of the list 'PerlBean::Attribute' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+Returns an C<ARRAY> containing the values of the list of 'PerlBean::Attribute' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
 
 =item setBase (ARRAY)
 
@@ -350,6 +379,54 @@ Set the software license for the PerlBean. C<VALUE> is the value. On error an ex
 
 Returns the software license for the PerlBean.
 
+=item setMethod ([VALUE ...])
+
+Set the list of 'PerlBean::Method' objects absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<getMethodName ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Method
+
+=back
+
+=back
+
+=item addMethod ([VALUE ...])
+
+Add additional values on the list of 'PerlBean::Method' objects. Each C<VALUE> is an object out of which the id is obtained through method C< ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Method
+
+=back
+
+=back
+
+=item deleteMethod (ARRAY)
+
+Delete elements from the list of 'PerlBean::Method' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item existsMethod (ARRAY)
+
+Returns the count of items in C<ARRAY> that are in the list of 'PerlBean::Method' objects.
+
+=item keysMethod ()
+
+Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Method' objects.
+
+=item valuesMethod ([KEY_ARRAY])
+
+Returns an C<ARRAY> containing the values of the list of 'PerlBean::Method' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+
 =item setPackage (VALUE)
 
 Set package name. C<VALUE> is the value. Default value at initialization is C<main>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
@@ -365,10 +442,6 @@ Set the short PerlBean description. C<VALUE> is the value. Default value at init
 =item getShortDescription ()
 
 Returns the short PerlBean description.
-
-=item write (FILEHANDLE)
-
-Write the Perl class code to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 
 =item setSynopsis (VALUE)
 
@@ -401,9 +474,11 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -419,7 +494,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -492,6 +567,14 @@ sub _initialize {
 	# license, SINGLE
 	exists ($opt->{license}) && $self->setLicense ($opt->{license});
 
+	# method, MULTI
+	if (exists ($opt->{method})) {
+		ref ($opt->{method}) eq 'ARRAY' || throw Error::Simple ("ERROR: PerlBean::_initialize, specified value for option 'method' must be an 'ARRAY' reference.");
+		$self->setMethod (@{$opt->{method}});
+	} else {
+		$self->setMethod ();
+	}
+
 	# package, SINGLE, with default value
 	$self->setPackage (exists ($opt->{package}) ? $opt->{package} : $DEFAULT_VALUE{package});
 
@@ -503,6 +586,209 @@ sub _initialize {
 
 	# Return $self
 	return ($self);
+}
+
+sub write {
+	my $self = shift;
+	my $fh = shift;
+
+	# Package heading
+	$self->writePackageHead ($fh);
+
+	# Allow vairables
+	if (scalar ($self->valuesAttribute ())) {
+		$self->writeAllowIsaHash ($fh);
+		$self->writeAllowRefHash ($fh);
+		$self->writeAllowRxHash ($fh);
+		$self->writeAllowValueHash ($fh);
+		$self->writeDefaultValueHash ($fh);
+	}
+
+	# End of preloaded methods
+	$self->writePreloadedEnd ($fh);
+
+	# Start pod documentation
+	$self->writeDocHead ($fh);
+
+
+	# Get all methods that are callable from this package
+	$self->getCallableMethods (\my %meth, {});
+
+	# As getCallableMethods () returns interface methods too,
+	# check that no interface methods from other packages
+	# are returned
+	foreach my $name (sort (keys (%meth))) {
+		($meth{$name}->getPackage () eq $self->getPackage ()) && next;
+		throw Error::Simple (
+			"ERROR: PerlBean::write, method '$name' which is defined as interface in package '" .
+			$meth{$name}->getPackage () . "' is not inplemented in subclass '" .
+			$self->getPackage () . "'"
+		) if ($meth{$name}->isInterface ());
+	}
+
+	# Check for inherited methods and remember the package names
+	#
+	# %attr contains both the attributes defined in the class itself and
+	# in its superclasses. The attribute objects are indexed by attribute
+	# name.
+	#
+	# %pkg contains the packages from which attribute methods are inherited
+	#
+	# $do_inherited is set to 1 when attribute methods actually are inherited
+	#
+	$self->getInheritAttributes (\my %attr, {});
+	my %pkg = ();
+	my $do_inherited = 0;
+	foreach my $attr (values (%attr)) {
+		$do_inherited = $do_inherited || ($attr->getPerlBean ()->getPackage () ne $self->getPackage ());
+		$pkg{$attr->getPerlBean ()->getPackage ()} = 1;
+	}
+
+	# Constructor documentation
+	$self->writeDocConstructorHead ($fh, \%attr);
+	if (scalar ($self->valuesAttribute ())) {
+		$self->writeDocConstructorBody ($fh);
+	}
+	if ($do_inherited) {
+		$self->writeDocInheritConstructorBody ($fh, \%attr, \%pkg);
+	}
+	$self->writeDocConstructorTail ($fh);
+
+	# Methods documentation
+	if (scalar ($self->valuesAttribute ()) || scalar (keys (%meth))) {
+		$self->writeDocMethodsHead ($fh);
+		$self->writeDocMethodsBody ($fh, \%meth);
+		$self->writeDocMethodsTail ($fh);
+	}
+
+	# Inherited methods documentation
+	$self->writeDocInheritMethods ($fh, \%attr, \%pkg) if ($do_inherited);
+
+	# Finish pod documentation
+	$self->writeDocTail ($fh);
+
+	# The new method
+	if (! $self->superClassInCollection ()) {
+		$self->writeNewMethod ($fh);
+	}
+
+	# The _initialize method
+	if (scalar ($self->valuesAttribute ())) {
+		$self->writeInitMethodHead ($fh);
+		$self->writeInitMethodBody ($fh);
+		$self->writeInitMethodTail ($fh, $do_inherited);
+	}
+
+	# All methods from this bean
+	my %all_meth_ref = ();
+	foreach my $name (sort ($self->keysMethod ())) {
+		my $method = ($self->valuesMethod ($name))[0];
+		$method->writeCode ($fh);
+		$all_meth_ref{$name} = $method;
+	}
+
+	# All attributes from this bean
+	my %all_attr_ref = ();
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		$attribute->writeMethods ($fh);
+		$all_attr_ref{$name} = $attribute;
+	}
+
+	# Allow method
+	if (scalar ($self->valuesAttribute ())) {
+		$self->writeValueAllowedMethod ($fh);
+	}
+}
+
+sub writeAllowIsaHash {
+	my $self = shift;
+	my $fh = shift;
+
+	$fh->print (<<EOF);
+our \%ALLOW_ISA = (
+EOF
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		next if ($attribute->isa ('PerlBean::Attribute::Boolean'));
+		$attribute->writeAllowIsa ($fh);
+	}
+	$fh->print (<<EOF);
+);
+EOF
+
+}
+
+sub writeAllowRefHash {
+	my $self = shift;
+	my $fh = shift;
+
+	$fh->print (<<EOF);
+our \%ALLOW_REF = (
+EOF
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		next if ($attribute->isa ('PerlBean::Attribute::Boolean'));
+		$attribute->writeAllowRef ($fh);
+	}
+	$fh->print (<<EOF);
+);
+EOF
+
+}
+
+sub writeAllowRxHash {
+	my $self = shift;
+	my $fh = shift;
+
+	$fh->print (<<EOF);
+our \%ALLOW_RX = (
+EOF
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		next if ($attribute->isa ('PerlBean::Attribute::Boolean'));
+		$attribute->writeAllowRx ($fh);
+	}
+	$fh->print (<<EOF);
+);
+EOF
+
+}
+
+sub writeAllowValueHash {
+	my $self = shift;
+	my $fh = shift;
+
+	$fh->print (<<EOF);
+our \%ALLOW_VALUE = (
+EOF
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		next if ($attribute->isa ('PerlBean::Attribute::Boolean'));
+		$attribute->writeAllowValue ($fh);
+	}
+	$fh->print (<<EOF);
+);
+EOF
+
+}
+
+sub writeDefaultValueHash {
+	my $self = shift;
+	my $fh = shift;
+
+	$fh->print (<<EOF);
+our \%DEFAULT_VALUE = (
+EOF
+	foreach my $name (sort ($self->keysAttribute ())) {
+		my $attribute = ($self->valuesAttribute ($name))[0];
+		$attribute->writeDefaultValue ($fh);
+	}
+	$fh->print (<<EOF);
+);
+
+EOF
+
 }
 
 sub setAbstract {
@@ -525,45 +811,29 @@ sub getAbstract {
 sub setAttribute {
 	my $self = shift;
 
-	# Separate keys/values
-	my @key = ();
-	my @value = ();
-	while (my $key = shift (@_)) {
-		push (@key, $key);
-		push (@value, shift (@_));
-	}
-
 	# Check if isas/refs/rxs/values are allowed
-	&valueIsAllowed ('attribute', @value) || throw Error::Simple ("ERROR: PerlBean::setAttribute, one or more specified value(s) '@value' is/are not allowed.");
+	&valueIsAllowed ('attribute', @_) || throw Error::Simple ("ERROR: PerlBean::setAttribute, one or more specified value(s) '@_' is/are not allowed.");
 
 	# Empty list
 	$self->{PerlBean}{attribute} = {};
 
 	# Add keys/values
-	foreach my $key (@key) {
-		$self->{PerlBean}{attribute}{$key} = shift (@value);
-		$self->{PerlBean}{attribute}{$key}->setPerlBean ($self);
+	foreach my $val (@_) {
+		$self->{PerlBean}{attribute}{$val->getAttributeName ()} = $val;
+		$val->setPerlBean ($self);
 	}
 }
 
 sub addAttribute {
 	my $self = shift;
 
-	# Separate keys/values
-	my @key = ();
-	my @value = ();
-	while (my $key = shift (@_)) {
-		push (@key, $key);
-		push (@value, shift (@_));
-	}
-
 	# Check if isas/refs/rxs/values are allowed
-	&valueIsAllowed ('attribute', @value) || throw Error::Simple ("ERROR: PerlBean::addAttribute, one or more specified value(s) '@value' is/are not allowed.");
+	&valueIsAllowed ('attribute', @_) || throw Error::Simple ("ERROR: PerlBean::addAttribute, one or more specified value(s) '@_' is/are not allowed.");
 
 	# Add keys/values
-	foreach my $key (@key) {
-		$self->{PerlBean}{attribute}{$key} = shift (@value);
-		$self->{PerlBean}{attribute}{$key}->setPerlBean ($self);
+	foreach my $val (@_) {
+		$self->{PerlBean}{attribute}{$val->getAttributeName ()} = $val;
+		$val->setPerlBean ($self);
 	}
 }
 
@@ -794,6 +1064,81 @@ sub getLicense {
 	return ($self->{PerlBean}{license});
 }
 
+sub setMethod {
+	my $self = shift;
+
+	# Check if isas/refs/rxs/values are allowed
+	&valueIsAllowed ('method', @_) || throw Error::Simple ("ERROR: PerlBean::setMethod, one or more specified value(s) '@_' is/are not allowed.");
+
+	# Empty list
+	$self->{PerlBean}{method} = {};
+
+	# Add keys/values
+	foreach my $val (@_) {
+		$self->{PerlBean}{method}{$val->getMethodName ()} = $val;
+		$val->setPerlBean ($self);
+	}
+}
+
+sub addMethod {
+	my $self = shift;
+
+	# Check if isas/refs/rxs/values are allowed
+	&valueIsAllowed ('method', @_) || throw Error::Simple ("ERROR: PerlBean::addMethod, one or more specified value(s) '@_' is/are not allowed.");
+
+	# Add keys/values
+	foreach my $val (@_) {
+		$self->{PerlBean}{method}{$val->getMethodName ()} = $val;
+		$val->setPerlBean ($self);
+	}
+}
+
+sub deleteMethod {
+	my $self = shift;
+
+	# Delete values
+	my $del = 0;
+	foreach my $val (@_) {
+		exists ($self->{PerlBean}{method}{$val}) || next;
+		delete ($self->{PerlBean}{method}{$val});
+		$del++;
+	}
+	return ($del);
+}
+
+sub existsMethod {
+	my $self = shift;
+
+	# Count occurences
+	my $count = 0;
+	foreach my $val (@_) {
+		$count += exists ($self->{PerlBean}{method}{$val});
+	}
+	return ($count);
+}
+
+sub keysMethod {
+	my $self = shift;
+
+	# Return all keys
+	return (keys (%{$self->{PerlBean}{method}}));
+}
+
+sub valuesMethod {
+	my $self = shift;
+
+	if (scalar (@_)) {
+		my @ret = ();
+		foreach my $key (@_) {
+			exists ($self->{PerlBean}{method}{$key}) && push (@ret, $self->{PerlBean}{method}{$key});
+		}
+		return (@ret);
+	} else {
+		# Return all values
+		return (values (%{$self->{PerlBean}{method}}));
+	}
+}
+
 sub setPackage {
 	my $self = shift;
 	my $val = shift;
@@ -922,7 +1267,7 @@ sub getOverloadedAttribute {
 	# Check super classes
 	foreach my $super_pkg ($self->getBase ()) {
 		# Get the super class bean
-		my $super_bean = ($self->getCollection ()->valuesBean ($super_pkg))[0];
+		my $super_bean = ($self->getCollection ()->valuesPerlBean ($super_pkg))[0];
 
 		# If the super class bean has no bean in the collection then no attribute is found
 		defined ($super_bean) || return (undef);
@@ -938,6 +1283,39 @@ sub getOverloadedAttribute {
 	return (undef);
 }
 
+sub getSuperMethod {
+	my $self = shift;
+	my $match_meth = shift;
+	my $loop_stop = shift;
+
+	# Check for a loop
+	my $pkg = $self->getPackage ();
+	exists ($loop_stop->{$pkg}) && throw Error::Simple ("ERROR: PerlBean::getSuperMethod, loop detected in inheritance at bean '$pkg'.");
+	$loop_stop->{$pkg} = 1;
+
+	# Check and return method if found in this bean
+	my $found_meth = ($self->valuesMethod ($match_meth->getMethodName ()))[0];
+	defined ($found_meth) && return ($found_meth);
+
+	# Check super classes
+	foreach my $super_pkg ($self->getBase ()) {
+		# Get the super class bean
+		my $super_bean = ($self->getCollection ()->valuesPerlBean ($super_pkg))[0];
+
+		# If the super class bean has no bean in the collection then no method is found
+		defined ($super_bean) || return (undef);
+
+		# See if the super class bean has the method
+		my $found_meth = $super_bean->getSuperMethod ($match_meth, $loop_stop);
+
+		# Return the overloaded bean if found
+		defined ($found_meth) && return ($found_meth);
+	}
+
+	# Nothing found
+	return (undef);
+}
+
 sub getInheritAttributes {
 	my $self = shift;
 	my $done = shift;
@@ -945,7 +1323,7 @@ sub getInheritAttributes {
 
 	# Check for a loop
 	my $pkg = $self->getPackage ();
-	exists ($loop_stop->{$pkg}) && throw Error::Simple ("ERROR: PerlBean::getInheritAttributes, loop detected in inheritance at bean '$pkg'.");
+	exists ($loop_stop->{$pkg}) && throw Error::Simple ("ERROR: PerlBean::getInheritAttributes, loop detected for bean '$pkg'.");
 	$loop_stop->{$pkg} = 1;
 
 	# Add own attributes
@@ -957,13 +1335,45 @@ sub getInheritAttributes {
 	# Add attributes from super classes
 	foreach my $super_pkg ($self->getBase ()) {
 		# Get the super class bean
-		my $super_bean = ($self->getCollection ()->valuesBean ($super_pkg))[0];
+		my $super_bean = ($self->getCollection ()->valuesPerlBean ($super_pkg))[0];
 
 		# If the super package is not in the collection, well too bad (for now anyway)
 		defined ($super_bean) || next;
 
 		# See if the super class bean has an attribute
 		$super_bean->getInheritAttributes ($done, $loop_stop);
+	}
+}
+
+sub getCallableMethods {
+	my $self = shift;
+	my $meth_found = shift;
+	my $loop_stop = shift;
+
+	# Check for a loop
+	my $pkg = $self->getPackage ();
+	exists ($loop_stop->{$pkg}) && throw Error::Simple ("ERROR: PerlBean::getCallableMethods, loop detected for bean '$pkg'.");
+	$loop_stop->{$pkg} = 1;
+
+	# Add own methods
+	foreach my $meth ($self->valuesMethod ()) {
+		exists ($meth_found->{$meth->getMethodName ()}) && next;
+		$meth_found->{$meth->getMethodName ()} = $meth;
+	}
+
+	# End if collection not set
+	defined ($self->getCollection ()) || return;
+
+	# Add methods from super classes
+	foreach my $super_pkg ($self->getBase ()) {
+		# Get the super class bean
+		my $super_bean = ($self->getCollection ()->valuesPerlBean ($super_pkg))[0];
+
+		# If the super package is not in the collection, well too bad (for now anyway)
+		defined ($super_bean) || next;
+
+		# See if the super class bean has an attribute
+		$super_bean->getCallableMethods ($meth_found, $loop_stop);
 	}
 }
 
@@ -980,185 +1390,10 @@ sub superClassInCollection {
 	my $super_pkg = ($self->getBase ())[0];
 
 	# Get the super class bean
-	my $super_bean = ($self->getCollection ()->valuesBean ($super_pkg))[0];
+	my $super_bean = ($self->getCollection ()->valuesPerlBean ($super_pkg))[0];
 
 	# Succeed if the superclass package is in the collection
 	return (defined ($super_bean));
-}
-
-sub write {
-	my $self = shift;
-	my $fh = shift;
-
-	# Package heading
-	$self->writePackageHead ($fh);
-
-	# Allow vairables
-	if (scalar ($self->valuesAttribute ())) {
-		$self->writeAllowIsaHash ($fh);
-		$self->writeAllowRefHash ($fh);
-		$self->writeAllowRxHash ($fh);
-		$self->writeAllowValueHash ($fh);
-		$self->writeDefaultValueHash ($fh);
-	}
-
-	# End of preloaded methods
-	$self->writePreloadedEnd ($fh);
-
-	# Start pod documentation
-	$self->writeDocHead ($fh);
-
-	# Check for inherited methods and remember the package names
-	#
-	# %attr contains both the attributes defined in the class itself and
-	# in its superclasses. The attribute objects are indexed by attribute
-	# name.
-	#
-	# %pkg contains the packages from which attribute methods are inherited
-	#
-	# $do_inherited is set to 1 when attribute methods actually are inherited
-	#
-	$self->getInheritAttributes (\my %attr, {});
-	my %pkg = ();
-	my $do_inherited = 0;
-	foreach my $attr (values (%attr)) {
-		$do_inherited = $do_inherited || ($attr->getPerlBean ()->getPackage () ne $self->getPackage ());
-		$pkg{$attr->getPerlBean ()->getPackage ()} = 1;
-	}
-
-	# Constructor documentation
-	$self->writeDocConstructorHead ($fh, \%attr);
-	if (scalar ($self->valuesAttribute ())) {
-		$self->writeDocConstructorBody ($fh);
-	}
-	if ($do_inherited) {
-		$self->writeDocInheritConstructorBody ($fh, \%attr, \%pkg);
-	}
-	$self->writeDocConstructorTail ($fh);
-
-	# Methods documentation
-	if (scalar ($self->valuesAttribute ())) {
-		$self->writeDocMethodsHead ($fh);
-		$self->writeDocMethodsBody ($fh);
-		$self->writeDocMethodsTail ($fh);
-	}
-
-	# Inherited methods documentation
-	$self->writeDocInheritMethods ($fh, \%attr, \%pkg) if ($do_inherited);
-
-	# Finish pod documentation
-	$self->writeDocTail ($fh);
-
-	# The new method
-	if (! $self->superClassInCollection ()) {
-		$self->writeNewMethod ($fh);
-	}
-
-	# The _initialize method
-	if (scalar ($self->valuesAttribute ())) {
-		$self->writeInitMethodHead ($fh);
-		$self->writeInitMethodBody ($fh);
-		$self->writeInitMethodTail ($fh, $do_inherited);
-	}
-
-	# All attributes from this bean
-	my %all_attr_ref = ();
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeMethods ($fh);
-		$all_attr_ref{$name} = $attribute;
-	}
-
-	# Allow method
-	if (scalar ($self->valuesAttribute ())) {
-		$self->writeValueAllowedMethod ($fh);
-	}
-}
-
-sub writeAllowIsaHash {
-	my $self = shift;
-	my $fh = shift;
-
-	$fh->print (<<EOF);
-our \%ALLOW_ISA = (
-EOF
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeAllowIsa ($fh);
-	}
-	$fh->print (<<EOF);
-);
-EOF
-
-}
-
-sub writeAllowRefHash {
-	my $self = shift;
-	my $fh = shift;
-
-	$fh->print (<<EOF);
-our \%ALLOW_REF = (
-EOF
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeAllowRef ($fh);
-	}
-	$fh->print (<<EOF);
-);
-EOF
-
-}
-
-sub writeAllowRxHash {
-	my $self = shift;
-	my $fh = shift;
-
-	$fh->print (<<EOF);
-our \%ALLOW_RX = (
-EOF
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeAllowRx ($fh);
-	}
-	$fh->print (<<EOF);
-);
-EOF
-
-}
-
-sub writeAllowValueHash {
-	my $self = shift;
-	my $fh = shift;
-
-	$fh->print (<<EOF);
-our \%ALLOW_VALUE = (
-EOF
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeAllowValue ($fh);
-	}
-	$fh->print (<<EOF);
-);
-EOF
-
-}
-
-sub writeDefaultValueHash {
-	my $self = shift;
-	my $fh = shift;
-
-	$fh->print (<<EOF);
-our \%DEFAULT_VALUE = (
-EOF
-	foreach my $name (sort ($self->keysAttribute ())) {
-		my $attribute = ($self->valuesAttribute ($name))[0];
-		$attribute->writeDefaultValue ($fh);
-	}
-	$fh->print (<<EOF);
-);
-
-EOF
-
 }
 
 sub writeDocConstructorBody {
@@ -1313,7 +1548,11 @@ EOF
 sub writeDocMethodsBody {
 	my $self = shift;
 	my $fh = shift;
+	my $meth = shift;
 
+	foreach my $name (sort (keys (%{$meth}))) {
+		$meth->{$name}->writePod ($fh, $self->getPackage ());
+	}
 	foreach my $name (sort ($self->keysAttribute ())) {
 		my $attribute = ($self->valuesAttribute ($name))[0];
 		$attribute->writeDocMethods ($fh);
@@ -1353,7 +1592,7 @@ sub writeDocTail {
 	my $also = 'TODO';
 	if (defined ($self->getCollection ())) {
 		$also = '';
-		foreach my $pkg (sort ($self->getCollection ()->keysBean ())) {
+		foreach my $pkg (sort ($self->getCollection ()->keysPerlBean ())) {
 			next if ($pkg eq $self->getPackage ());
 			$also .= "L<$pkg>,\n";
 		}

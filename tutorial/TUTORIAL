@@ -72,7 +72,7 @@ Example 2, diff example.1 example.2:
 >       type => 'BOOLEAN',
 >       short_description => 'the generation of this code is easy',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.2.out' which looks like:
   [...]
@@ -115,7 +115,7 @@ Example 3, diff example.2 example.3:
 >       type => 'SINGLE',
 >       short_description => 'the object name',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.3.out' which looks like:
   [...]
@@ -236,7 +236,7 @@ Example 6, diff example.5 example.6:
 >       type => 'MULTI',
 >       short_description => 'object aliases',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.6.out' which looks like:
   [...]
@@ -283,7 +283,7 @@ Example 7, diff example.6 example.7:
 >       unique => 1,
 >       short_description => 'phone numbers',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.7.out' which looks like:
   [...]
@@ -331,7 +331,7 @@ Example 8, diff example.7 example.8:
 >       unique => 1,
 >       short_description => 'buddies by phone number',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.7.out' which looks like:
   [...]
@@ -388,7 +388,7 @@ Example 9, diff example.8 example.9:
 >       ordered => 1,
 >       short_description => 'traveling salesman plan',
 >   });
->   $bean->addAttribute ($attr->getAttributeName (), $attr);
+>   $bean->addAttribute ($attr);
 
 Results in Perl module file 'example.6.out' which looks like:
   [...]

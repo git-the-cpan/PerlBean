@@ -1,4 +1,4 @@
-package PerlBean::Attribute::Multi::Unique::Ordered;
+package PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
 
 use 5.005;
 use strict;
@@ -8,7 +8,19 @@ use AutoLoader qw (AUTOLOAD);
 
 use base qw (PerlBean::Attribute::Multi);
 
-our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3.0.1 $ ' =~ /\$Revision:\s+([^\s]+)/;
+
+our %ALLOW_ISA = (
+);
+our %ALLOW_REF = (
+);
+our %ALLOW_RX = (
+);
+our %ALLOW_VALUE = (
+);
+our %DEFAULT_VALUE = (
+	'id_method' => 'getId',
+);
 
 our $SUB = 'sub';
 
@@ -18,30 +30,30 @@ __END__
 
 =head1 NAME
 
-PerlBean::Attribute::Multi::Unique::Ordered - contains unique ordered MULTI bean attribute information
+PerlBean::Attribute::Multi::Unique::Associative::MethodKey - contains unique associative MULTI bean attribute information
 
 =head1 SYNOPSIS
 
  use strict;
- use PerlBean::Attribute::Multi::Unique::Ordered;
- my $attr = PerlBean::Attribute::Multi::Unique::Ordered->new ({
- 	attribute_name => 'locations_in_traveling_salesman_itinerary',
- 	short_description => 'the locations in a traveling salesman\'s itinerary',
+ use PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
+ my $attr = PerlBean::Attribute::Multi::Unique::Associative::MethodKey->new ({
+ 	attribute_name => 'ssns_i_know_from_people',
+ 	short_description => 'all SSNs I know from people',
  });
  
  use IO::File;
  -d 'tmp' || mkdir ('tmp');
- my $fh = IO::File->new ('> tmp/PerlBean_Attribute_Multi_Unique_Ordered.pl.out');
+ my $fh = IO::File->new ('> tmp/PerlBean_Attribute_Multi_Unique_Associative_MethodKey.pl.out');
  $attr->writeMethods ($fh);
  $attr->writeDocMethods ($fh);
 
 =head1 ABSTRACT
 
-Unique, ordered MULTI bean attribute information
+Unique, associative MULTI bean attribute information
 
 =head1 DESCRIPTION
 
-C<PerlBean::Attribute::Multi::Unique::Ordered> contains unique ordered MULTI bean attribute information. It is a subclass of C<PerlBean::Attribute::Multi>. The code generation and documentation methods from C<PerlBean::Attribute> are implemented.`
+C<PerlBean::Attribute::Multi::Unique::Associative::MethodKey> contains information on unique associative MULTI bean attribute that gets its key from an object method. It is a subclass of C<PerlBean::Attribute::Multi>. The code generation and documentation methods from C<PerlBean::Attribute> are implemented.
 
 =head1 CONSTRUCTOR
 
@@ -49,7 +61,17 @@ C<PerlBean::Attribute::Multi::Unique::Ordered> contains unique ordered MULTI bea
 
 =item new (OPT_HASH_REF)
 
-Creates a new C<PerlBean::Attribute::Multi::Unique::Ordered> object. C<OPT_HASH_REF> is a hash reference used to pass initialization options. C<OPT_HASH_REF> is mandatory. On error an exception C<Error::Simple> is thrown.
+Creates a new C<PerlBean::Attribute::Multi::Unique::Associative::MethodKey> object. C<OPT_HASH_REF> is a hash reference used to pass initialization options. C<OPT_HASH_REF> is mandatory. On error an exception C<Error::Simple> is thrown.
+
+Options for C<OPT_HASH_REF> may include:
+
+=over
+
+=item B<C<id_method>>
+
+Passed to L<setIdMethod ()>. Defaults to B<getId>.
+
+=back
 
 Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Attribute>> may include:
 
@@ -159,7 +181,7 @@ This method is inherited from package C<'PerlBean::Attribute'>. Writes documenta
 
 =item writeDocInheritMethods (FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<add...>, B<delete...>, B<exists...>, B<keys...> and B<values...>.
 
 =item writeDocInit (FILEHANDLE)
 
@@ -167,15 +189,23 @@ This method is inherited from package C<'PerlBean::Attribute::Multi'>. Writes do
 
 =item writeDocMethods (FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<add...>, B<delete...>, B<exists...>, B<keys...> and B<values...>.
 
 =item writeMethods (FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is overloaded from package C<'PerlBean::Attribute::Multi'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception. Access methods are B<set...>, B<add...>, B<delete...>, B<exists...>, B<keys...> and B<values...>.
 
 =item writeOptInit (FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute::Multi'>. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item setIdMethod (VALUE)
+
+Set the method to obtain the ID from the item in the list. C<VALUE> is the value. Default value at initialization is C<getId>. On error an exception C<Error::Simple> is thrown.
+
+=item getIdMethod ()
+
+Returns the method to obtain the ID from the item in the list.
 
 =back
 
@@ -249,7 +279,7 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
-L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
+L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
 L<PerlBean::Method>
@@ -292,6 +322,23 @@ Boston, MA 02111-1307 USA
 
 =cut
 
+sub _initialize {
+	my $self = shift;
+	my $opt = defined ($_[0]) ? shift : {};
+
+	# Check $opt
+	ref ($opt) eq 'HASH' || throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::Unique::Associative::MethodKey::_initialize, first argument must be 'HASH' reference.");
+
+	# id_method, SINGLE, with default value
+	$self->setIdMethod (exists ($opt->{id_method}) ? $opt->{id_method} : $DEFAULT_VALUE{id_method});
+
+	# Call the superclass' _initialize
+	$self->SUPER::_initialize ($opt);
+
+	# Return $self
+	return ($self);
+}
+
 sub writeDocInheritMethods {
 	my $self = shift;
 	my $fh = shift;
@@ -299,7 +346,7 @@ sub writeDocInheritMethods {
 	my $mb = $self->getMethodBase ();
 
 	my @meth = ();
-	foreach my $op (qw (set push pop shift unshift exists get)) {
+	foreach my $op (qw (set add delete exists keys values)) {
 		push (@meth, "$op$mb ()");
 	}
 	my $meth = join (', ', @meth);
@@ -311,16 +358,15 @@ EOF
 }
 
 sub writeDocMethods {
-        my $self = shift;
-        my $fh = shift;
+	my $self = shift;
+	my $fh = shift;
 
 	$self->writeSetDoc ($fh);
-	$self->writePushDoc ($fh);
-	$self->writePopDoc ($fh);
-	$self->writeShiftDoc ($fh);
-	$self->writeUnshiftDoc ($fh);
+	$self->writeAddDoc ($fh);
+	$self->writeDeleteDoc ($fh);
 	$self->writeExistsDoc ($fh);
-	$self->writeGetDoc ($fh);
+	$self->writeKeysDoc ($fh);
+	$self->writeValuesDoc ($fh);
 }
 
 sub writeMethods {
@@ -328,12 +374,71 @@ sub writeMethods {
 	my $fh = shift;
 
 	$self->writeSetMethod ($fh);
-	$self->writePushMethod ($fh);
-	$self->writePopMethod ($fh);
-	$self->writeShiftMethod ($fh);
-	$self->writeUnshiftMethod ($fh);
+	$self->writeAddMethod ($fh);
+	$self->writeDeleteMethod ($fh);
 	$self->writeExistsMethod ($fh);
-	$self->writeGetMethod ($fh);
+	$self->writeKeysMethod ($fh);
+	$self->writeValuesMethod ($fh);
+}
+
+sub setIdMethod {
+	my $self = shift;
+	my $val = shift;
+
+	# Check if isa/ref/rx/value is allowed
+	&valueIsAllowed ('id_method', $val) || throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::Unique::Associative::MethodKey::setIdMethod, the specified value '$val' is not allowed.");
+
+	# Assignment
+	$self->{PerlBean_Attribute_Multi_Unique_Associative_MethodKey}{id_method} = $val;
+}
+
+sub getIdMethod {
+	my $self = shift;
+
+	return ($self->{PerlBean_Attribute_Multi_Unique_Associative_MethodKey}{id_method});
+}
+
+sub valueIsAllowed {
+	my $name = shift;
+
+	# Value is allowed if no ALLOW clauses exist for the named attribute
+	if (!exists ($ALLOW_ISA{$name}) && !exists ($ALLOW_REF{$name}) && !exists ($ALLOW_RX{$name}) && !exists ($ALLOW_VALUE{$name})) {
+		return (1);
+	}
+
+	# At this point, all values in @_ must to be allowed
+	CHECK_VALUES:
+	foreach my $val (@_) {
+		# Check ALLOW_ISA
+		if (ref ($val) && exists ($ALLOW_ISA{$name})) {
+			foreach my $class (@{$ALLOW_ISA{$name}}) {
+				&UNIVERSAL::isa ($val, $class) && next CHECK_VALUES;
+			}
+		}
+
+		# Check ALLOW_REF
+		if (ref ($val) && exists ($ALLOW_REF{$name})) {
+			exists ($ALLOW_REF{$name}{$val}) && next CHECK_VALUES;
+		}
+
+		# Check ALLOW_RX
+		if (defined ($val) && !ref ($val) && exists ($ALLOW_RX{$name})) {
+			foreach my $rx (@{$ALLOW_RX{$name}}) {
+				$val =~ /$rx/ && next CHECK_VALUES;
+			}
+		}
+
+		# Check ALLOW_VALUE
+		if (!ref ($val) && exists ($ALLOW_VALUE{$name})) {
+			exists ($ALLOW_VALUE{$name}{$val}) && next CHECK_VALUES;
+		}
+
+		# We caught a not allowed value
+		return (0);
+	}
+
+	# OK, all values are allowed
+	return (1);
 }
 
 sub writeSetMethod {
@@ -346,6 +451,7 @@ sub writeSetMethod {
 	my $ec = $self->getExceptionClass ();
 	my $pkg = $self->getPackage ();
 	my $pkg_us = $self->getPackageUS ();
+	my $idm = $self->getIdMethod ();
 
 	# Method head
 	$fh->print (<<EOF);
@@ -364,24 +470,20 @@ EOF
 	}
 
 	# Check if isas/refs/rxs/values are allowed
-	# Empty the list
 	$fh->print (<<EOF);
 	# Check if isas/refs/rxs/values are allowed
 	\&valueIsAllowed ($an_esc, \@_) || throw $ec ("ERROR: ${pkg}::set$mb, one or more specified value(s) '\@_' is/are not allowed.");
-
-	# Empty list
-	\$self->{$pkg_us}{$an}{ARRAY} = [];
-	\$self->{$pkg_us}{$an}{HASH} = {};
 
 EOF
 
 	# Method tail
 	$fh->print (<<EOF);
-	# Push values
+	# Empty list
+	\$self->{$pkg_us}{$an} = {};
+
+	# Add keys/values
 	foreach my \$val (\@_) {
-		next if (exists (\$self->{$pkg_us}{$an}{HASH}{\$val}));
-		push (\@{\$self->{$pkg_us}{$an}{ARRAY}}, \$val);
-		\$self->{$pkg_us}{$an}{HASH}{\$val} = \$val;
+		\$self->{$pkg_us}{$an}{\$val->$idm ()} = \$val;
 	}
 }
 
@@ -399,18 +501,19 @@ sub writeSetDoc {
 	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
 	my $attr_overl = $self->getOverloadedAttribute ();
 	my $overl = defined ($attr_overl) ? " B<NOTE:> Methods B<C<*$mb ()>> are overloaded from package C<". $attr_overl->getPackage () .'>.': '';
+	my $idm = $self->getIdMethod ();
 
 	$fh->print (<<EOF);
-\=item set${mb} (ARRAY)
+\=item set${mb} ([VALUE ...])
 
-Set ${desc} absolutely. C<ARRAY> is the list value. Each element in the list is allowed to occur only once. Multiple occurences of the same element yield in the first occuring element to be inserted and the rest to be ignored.${def}${empt}${exc}${overl}
+Set ${desc} absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<$idm ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once.${def}${empt}${exc}${overl}
 
 EOF
 
 	$self->writeDocClauses ($fh);
 }
 
-sub writePushMethod {
+sub writeAddMethod {
 	my $self = shift;
 	my $fh = shift;
 
@@ -420,10 +523,11 @@ sub writePushMethod {
 	my $ec = $self->getExceptionClass ();
 	my $pkg = $self->getPackage ();
 	my $pkg_us = $self->getPackageUS ();
+	my $idm = $self->getIdMethod ();
 
 	# Method head
 	$fh->print (<<EOF);
-$SUB push$mb {
+$SUB add$mb {
 	my \$self = shift;
 
 EOF
@@ -431,24 +535,22 @@ EOF
 	# Check if isas/refs/rxs/values are allowed
 	$fh->print (<<EOF);
 	# Check if isas/refs/rxs/values are allowed
-	\&valueIsAllowed ($an_esc, \@_) || throw $ec ("ERROR: ${pkg}::push$mb, one or more specified value(s) '\@_' is/are not allowed.");
+	\&valueIsAllowed ($an_esc, \@_) || throw $ec ("ERROR: ${pkg}::add$mb, one or more specified value(s) '\@_' is/are not allowed.");
 
 EOF
 
 	# Method tail
 	$fh->print (<<EOF);
-	# Push values
+	# Add keys/values
 	foreach my \$val (\@_) {
-		next if (exists (\$self->{$pkg_us}{$an}{HASH}{\$val}));
-		push (\@{\$self->{$pkg_us}{$an}{ARRAY}}, \$val);
-		\$self->{$pkg_us}{$an}{HASH}{\$val} = \$val;
+		\$self->{$pkg_us}{$an}{\$val->$idm ()} = \$val;
 	}
 }
 
 EOF
 }
 
-sub writePushDoc {
+sub writeAddDoc {
 	my $self = shift;
 	my $fh = shift;
 
@@ -457,16 +559,16 @@ sub writePushDoc {
 	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
 
 	$fh->print (<<EOF);
-\=item push${mb} (ARRAY)
+\=item add${mb} ([VALUE ...])
 
-Push additional values on ${desc}. C<ARRAY> is the list value. The push may not yield to multiple identical elements in the list. Hence, multiple occurences of the same element are ignored.${exc}
+Add additional values on ${desc}. Each C<VALUE> is an object out of which the id is obtained through method C<$idm ()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once.${def}${empt}${exc}${overl}
 
 EOF
 
 	$self->writeDocClauses ($fh);
 }
 
-sub writePopMethod {
+sub writeDeleteMethod {
 	my $self = shift;
 	my $fh = shift;
 
@@ -479,7 +581,7 @@ sub writePopMethod {
 
 	# Method head
 	$fh->print (<<EOF);
-$SUB pop$mb {
+$SUB delete$mb {
 	my \$self = shift;
 
 EOF
@@ -488,148 +590,45 @@ EOF
 	if (! $self->isAllowEmpty ()) {
 		$fh->print (<<EOF);
 	# List value for $an_esc is not allowed to be empty
-	(scalar (\@_) > 1) || throw $ec ("ERROR: ${pkg}::pop$mb, list value may not be empty.");
+	my \%would_delete = ();
+	foreach my \$val (\@_) {
+		\$would_delete{\$val} = \$val if (exists (\$self->{$pkg_us}{$an}{\$val}))
+	}
+	(scalar (keys (\%{\$self->{$pkg_us}{$an}})) == scalar (keys (\%would_delete))) && throw $ec ("ERROR: ${pkg}::delete$mb, list value may not be empty.");
 
 EOF
 	}
 
 	# Method tail
 	$fh->print (<<EOF);
-	# Pop value
-	my \$val = pop (\@{\$self->{$pkg_us}{$an}{ARRAY}});
-	delete (\$self->{$pkg_us}{$an}{HASH}{\$val});
-	return (\$val);
-}
-
-EOF
-}
-
-sub writePopDoc {
-	my $self = shift;
-	my $fh = shift;
-
-	my $mb = $self->getMethodBase ();
-	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
-	my $empt = $self->isAllowEmpty () ? '' : ' After popping at least one element must remain.';
-	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
-
-	$fh->print (<<EOF);
-\=item pop${mb} ()
-
-Pop and return an element off ${desc}.${empt}${exc}
-
-EOF
-}
-
-sub writeShiftMethod {
-	my $self = shift;
-	my $fh = shift;
-
-	my $an = $self->getAttributeName ();
-	my $an_esc = $self->escQuote ($an);
-	my $mb = $self->getMethodBase ();
-	my $ec = $self->getExceptionClass ();
-	my $pkg = $self->getPackage ();
-	my $pkg_us = $self->getPackageUS ();
-
-	# Method head
-	$fh->print (<<EOF);
-$SUB shift$mb {
-	my \$self = shift;
-
-EOF
-
-	# Check if list value is allowed to be empty
-	if (! $self->isAllowEmpty ()) {
-		$fh->print (<<EOF);
-	# List value for $an_esc is not allowed to be empty
-	(scalar (\@_) > 1) || throw $ec ("ERROR: ${pkg}::shift$mb, list value may not be empty.");
-
-EOF
+	# Delete values
+	my \$del = 0;
+	foreach my \$val (\@_) {
+		exists (\$self->{$pkg_us}{$an}{\$val}) || next;
+		delete (\$self->{$pkg_us}{$an}{\$val});
+		\$del++;
 	}
-
-	# Method tail
-	$fh->print (<<EOF);
-	# Shift value
-	my \$val = shift (\@{\$self->{$pkg_us}{$an}{ARRAY}});
-	delete (\$self->{$pkg_us}{$an}{HASH}{\$val});
-	return (\$val);
+	return (\$del);
 }
 
 EOF
 }
 
-sub writeShiftDoc {
+sub writeDeleteDoc {
 	my $self = shift;
 	my $fh = shift;
 
 	my $mb = $self->getMethodBase ();
 	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
-	my $empt = $self->isAllowEmpty () ? '' : ' After shifting at least one element must remain.';
+	my $empt = $self->isAllowEmpty () ? '' : ' After deleting at least one element must remain.';
 	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
 
 	$fh->print (<<EOF);
-\=item shift${mb} ()
+\=item delete${mb} (ARRAY)
 
-Shift and return an element off ${desc}.${empt}${exc}
-
-EOF
-}
-
-sub writeUnshiftMethod {
-	my $self = shift;
-	my $fh = shift;
-
-	my $an = $self->getAttributeName ();
-	my $an_esc = $self->escQuote ($an);
-	my $mb = $self->getMethodBase ();
-	my $ec = $self->getExceptionClass ();
-	my $pkg = $self->getPackage ();
-	my $pkg_us = $self->getPackageUS ();
-
-	# Method head
-	$fh->print (<<EOF);
-$SUB unshift$mb {
-	my \$self = shift;
+Delete elements from ${desc}.${empt} Returns the number of deleted elements.${exc}
 
 EOF
-
-	# Check if isas/refs/rxs/values are allowed
-	$fh->print (<<EOF);
-	# Check if isas/refs/rxs/values are allowed
-	\&valueIsAllowed ($an_esc, \@_) || throw $ec ("ERROR: ${pkg}::unshift$mb, one or more specified value(s) '\@_' is/are not allowed.");
-
-EOF
-
-	# Method tail
-	$fh->print (<<EOF);
-	# Unshift values
-	foreach my \$val (reverse (\@_)) {
-		next if (exists (\$self->{$pkg_us}{$an}{HASH}{\$val}));
-		unshift (\@{\$self->{$pkg_us}{$an}{ARRAY}}, \$val);
-		\$self->{$pkg_us}{$an}{HASH}{\$val} = \$val;
-	}
-}
-
-EOF
-}
-
-sub writeUnshiftDoc {
-	my $self = shift;
-	my $fh = shift;
-
-	my $mb = $self->getMethodBase ();
-	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
-	my $exc = ' On error an exception C<' . $self->getExceptionClass () . '> is thrown.';
-
-	$fh->print (<<EOF);
-\=item unshift${mb} (ARRAY)
-
-Unshift additional values on ${desc}. C<ARRAY> is the list value. The push may not yield to multiple identical elements in the list. Hence, multiple occurences of the same element are ignored.${exc}
-
-EOF
-
-	$self->writeDocClauses ($fh);
 }
 
 sub writeExistsMethod {
@@ -647,7 +646,7 @@ $SUB exists$mb {
 	# Count occurences
 	my \$count = 0;
 	foreach my \$val (\@_) {
-		\$count += exists (\$self->{$pkg_us}{$an}{HASH}{\$val});
+		\$count += exists (\$self->{$pkg_us}{$an}{\$val});
 	}
 	return (\$count);
 }
@@ -670,7 +669,7 @@ Returns the count of items in C<ARRAY> that are in ${desc}.
 EOF
 }
 
-sub writeGetMethod {
+sub writeKeysMethod {
 	my $self = shift;
 	my $fh = shift;
 
@@ -679,25 +678,17 @@ sub writeGetMethod {
 	my $pkg_us = $self->getPackageUS ();
 
 	$fh->print (<<EOF);
-$SUB get$mb {
+$SUB keys$mb {
 	my \$self = shift;
 
-	if (scalar (\@_)) {
-		my \@ret = ();
-		foreach my \$i (\@_) {
-			push (\@ret, \$self->{$pkg_us}{$an}{ARRAY}[int (\$i)]);
-		}
-		return (\@ret);
-	} else {
-		# Return the list
-		return (\@{\$self->{$pkg_us}{$an}{ARRAY}});
-	}
+	# Return all keys
+	return (keys (\%{\$self->{$pkg_us}{$an}}));
 }
 
 EOF
 }
 
-sub writeGetDoc {
+sub writeKeysDoc {
 	my $self = shift;
 	my $fh = shift;
 
@@ -705,9 +696,51 @@ sub writeGetDoc {
 	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
 
 	$fh->print (<<EOF);
-\=item get${mb} ()
+\=item keys${mb} ()
 
-Returns an C<ARRAY> containing ${desc}. C<INDEX_ARRAY> is an optional list of indexes which when specified causes only the indexed elements in the ordered list to be returned. If not specified, all elements are returned.
+Returns an C<ARRAY> containing the keys of ${desc}.
+
+EOF
+}
+
+sub writeValuesMethod {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $pkg_us = $self->getPackageUS ();
+
+	$fh->print (<<EOF);
+$SUB values$mb {
+	my \$self = shift;
+
+	if (scalar (\@_)) {
+		my \@ret = ();
+		foreach my \$key (\@_) {
+			exists (\$self->{$pkg_us}{$an}{\$key}) && push (\@ret, \$self->{$pkg_us}{$an}{\$key});
+		}
+		return (\@ret);
+	} else {
+		# Return all values
+		return (values (\%{\$self->{$pkg_us}{$an}}));
+	}
+}
+
+EOF
+}
+
+sub writeValuesDoc {
+	my $self = shift;
+	my $fh = shift;
+
+	my $mb = $self->getMethodBase ();
+	my $desc = defined ($self->getShortDescription ()) ? $self->getShortDescription () : 'not described option';
+
+	$fh->print (<<EOF);
+\=item values${mb} ([KEY_ARRAY])
+
+Returns an C<ARRAY> containing the values of ${desc}. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
 
 EOF
 }

@@ -56,6 +56,46 @@ push (@::bean_desc, {
 				short_description => 'allowed values',
 			},
 		],
+		meth_opt => [
+			{
+				method_name => 'writeDocMethods',
+			},
+			{
+				method_name => 'writeMethods',
+			},
+			{
+				method_name => 'writeDocInheritMethods',
+			},
+			{
+				method_name => 'writeDefaultValue',
+			},
+			{
+				method_name => 'writeOptInit',
+			},
+			{
+				method_name => 'writeDocInit',
+			},
+			{
+				method_name => 'writeAllowIsa',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+			},
+			{
+				method_name => 'writeAllowRef',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+			},
+			{
+				method_name => 'writeAllowRx',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+			},
+			{
+				method_name => 'writeAllowValue',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+			},
+		],
 	},
 );
 

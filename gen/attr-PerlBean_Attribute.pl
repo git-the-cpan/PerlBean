@@ -55,6 +55,65 @@ push (@::bean_desc, {
 				short_description => 'the attribute description',
 			},
 		],
+		meth_opt => [
+			{
+				method_name => 'getPackage',
+				description => 'Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.',
+			},
+			{
+				method_name => 'getPackageUS',
+				description => 'Calls C<getPackage ()> and replaces C<:+> with C <_>.',
+			},
+			{
+				method_name => 'writeMethods',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'writeDocMethods',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'writeDocInheritMethods',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'writeDefaultValue',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'writeOptInit',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'writeDocInit',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.',
+				interface => 1,
+			},
+			{
+				method_name => 'getOverloadedAttribute',
+				description => 'Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned',
+			},
+			{
+				method_name => 'type',
+				description => 'Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.',
+			},
+			{
+				method_name => 'writeDocClauses',
+				parameter_description => 'FILEHANDLE',
+				description => 'Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.',
+			},
+		],
 	},
 );
 

@@ -26,6 +26,20 @@ push (@::bean_desc, {
 		},
 		attr_opt => [
 		],
+		meth_opt => [
+			{
+				method_name => 'writeMethods',
+				description => '__SUPER_POD__ Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
+			},
+			{
+				method_name => 'writeDocMethods',
+				description => '__SUPER_POD__ Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
+			},
+			{
+				method_name => 'writeDocInheritMethods',
+				description => '__SUPER_POD__ Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
+			},
+		],
 	},
 );
 

@@ -8,7 +8,7 @@ use AutoLoader qw (AUTOLOAD);
 
 use base qw (PerlBean::Attribute);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 our %ALLOW_ISA = (
 );
@@ -129,6 +129,66 @@ Passed to L<setShortDescription ()>.
 
 =over
 
+=item getOverloadedAttribute ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned
+
+=item getPackage ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+
+=item getPackageUS ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Calls C<getPackage ()> and replaces C<:+> with C <_>.
+
+=item type ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+
+=item writeAllowIsa (FILEHANDLE)
+
+Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowRef (FILEHANDLE)
+
+Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowRx (FILEHANDLE)
+
+Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowValue (FILEHANDLE)
+
+Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDefaultValue (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocClauses (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute'>. Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInheritMethods (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInit (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocMethods (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeMethods (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeOptInit (FILEHANDLE)
+
+This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
 =item setAllowEmpty (VALUE)
 
 State that the attribute is allowed to be empty. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
@@ -217,30 +277,6 @@ Returns the count of items in C<ARRAY> that are in allowed values.
 
 Returns an C<ARRAY> containing all values of allowed values.
 
-=item writeAllowIsa (FILEHANDLE)
-
-Write C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeAllowRef (FILEHANDLE)
-
-Write C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeAllowRx (FILEHANDLE)
-
-Write C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeAllowValue (FILEHANDLE)
-
-Write C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
-
-=item writeMethods (FILEHANDLE)
-
-Writes code for B<set> and B<get> methods.
-
-=item writeDocMethods (FILEHANDLE)
-
-Writes documenation for B<set> and B<get> methods.
-
 =back
 
 =head1 INHERITED METHODS FROM PerlBean::Attribute
@@ -287,8 +323,10 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -304,7 +342,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -375,6 +413,184 @@ sub _initialize {
 
 	# Return $self
 	return ($self);
+}
+
+sub writeAllowIsa {
+	my $self = shift;
+	my $fh = shift;
+
+	if (scalar ($self->valuesAllowIsa ())) {
+		my $an = $self->escQuote( $self->getAttributeName ());
+		my $dv = $self->escQuote (sort ($self->valuesAllowIsa ()));
+		$fh->print (<<EOF);
+\t$an => [ $dv ],
+EOF
+	}
+}
+
+sub writeAllowRef {
+	my $self = shift;
+	my $fh = shift;
+
+	if (scalar ($self->valuesAllowRef ())) {
+		my $an = $self->escQuote( $self->getAttributeName ());
+		$fh->print (<<EOF);
+\t$an => {
+EOF
+		my @dv = sort ($self->escQuoteL ($self->valuesAllowRef ()));
+		foreach my $dv (@dv) {
+			$fh->print (<<EOF);
+\t\t$dv => 1,
+EOF
+		}
+		$fh->print (<<EOF);
+\t},
+EOF
+	}
+}
+
+sub writeAllowRx {
+	my $self = shift;
+	my $fh = shift;
+
+	if (scalar ($self->valuesAllowRx ())) {
+		my $an = $self->escQuote( $self->getAttributeName ());
+		my $dv = $self->escQuote (sort ($self->valuesAllowRx ()));
+		$fh->print (<<EOF);
+\t$an => [ $dv ],
+EOF
+	}
+}
+
+sub writeAllowValue {
+	my $self = shift;
+	my $fh = shift;
+
+	if (scalar ($self->valuesAllowValue ())) {
+		my $an = $self->escQuote( $self->getAttributeName ());
+		$fh->print (<<EOF);
+\t$an => {
+EOF
+		my @dv = sort ($self->escQuoteL ($self->valuesAllowValue ()));
+		foreach my $dv (@dv) {
+			$fh->print (<<EOF);
+\t\t$dv => 1,
+EOF
+		}
+		$fh->print (<<EOF);
+\t},
+EOF
+	}
+}
+
+sub writeDefaultValue {
+	my $self = shift;
+	my $fh = shift;
+
+	defined ($self->getDefaultValue ()) || return;
+
+	my $an = $self->escQuote( $self->getAttributeName ());
+	my $dv = $self->escQuote ($self->getDefaultValue ());
+	$fh->print (<<EOF);
+\t$an => $dv,
+EOF
+}
+
+sub writeDocInheritMethods {
+	my $self = shift;
+	my $fh = shift;
+
+	my $mb = $self->getMethodBase ();
+
+	my @meth = ();
+	foreach my $op (qw (set get)) {
+		push (@meth, "$op$mb ()");
+	}
+	my $meth = join (', ', @meth);
+
+	$fh->print (<<EOF);
+$meth
+
+EOF
+}
+
+sub writeDocInit {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
+	my $def = '';
+	if (defined ($self->getDefaultValue ())) {
+		$def = ' Defaults to B<' . $self->getDefaultValue () . '>.';
+	}
+
+	$fh->print (<<EOF);
+\=item B<C<$an>>
+
+Passed to L<set$mb ()>.${mand}${def}
+
+EOF
+}
+
+sub writeDocMethods {
+	my $self = shift;
+	my $fh = shift;
+
+	$self->writeSetDoc ($fh);
+	$self->writeGetDoc ($fh);
+}
+
+sub writeMethods {
+	my $self = shift;
+	my $fh = shift;
+
+	$self->writeSetMethod ($fh);
+	$self->writeGetMethod ($fh);
+
+}
+
+sub writeOptInit {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $ec = $self->getExceptionClass ();
+	my $pkg = $self->getPackage ();
+
+	# Comment
+	$fh->print ("\t# $an, ", $self->type ());
+	$self->isMandatory () && $fh->print (', mandatory');
+	defined ($self->getDefaultValue ()) && $fh->print (', with default value');
+	$fh->print ("\n");
+
+	# isMandatory check
+	if ($self->isMandatory ()) {
+		$fh->print (<<EOF);
+	exists (\$opt->{$an}) || throw $ec ("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
+EOF
+	}
+
+	if ($self->isMandatory ()) {
+		$fh->print (<<EOF);
+	\$self->set$mb (\$opt->{$an});
+EOF
+	} else {
+		if (defined ($self->getDefaultValue ())) {
+		$fh->print (<<EOF);
+	\$self->set$mb (exists (\$opt->{$an}) ? \$opt->{$an} : \$DEFAULT_VALUE{$an});
+EOF
+		} else {
+		$fh->print (<<EOF);
+	exists (\$opt->{$an}) && \$self->set$mb (\$opt->{$an});
+EOF
+		}
+	}
+
+	# Empty line
+	$fh->print ("\n");
 }
 
 sub setAllowEmpty {
@@ -672,74 +888,6 @@ sub valueIsAllowed {
 	return (1);
 }
 
-sub writeAllowIsa {
-	my $self = shift;
-	my $fh = shift;
-
-	if (scalar ($self->valuesAllowIsa ())) {
-		my $an = $self->escQuote( $self->getAttributeName ());
-		my $dv = $self->escQuote (sort ($self->valuesAllowIsa ()));
-		$fh->print (<<EOF);
-\t$an => [ $dv ],
-EOF
-	}
-}
-
-sub writeAllowRef {
-	my $self = shift;
-	my $fh = shift;
-
-	if (scalar ($self->valuesAllowRef ())) {
-		my $an = $self->escQuote( $self->getAttributeName ());
-		$fh->print (<<EOF);
-\t$an => {
-EOF
-		my @dv = sort ($self->escQuoteL ($self->valuesAllowRef ()));
-		foreach my $dv (@dv) {
-			$fh->print (<<EOF);
-\t\t$dv => 1,
-EOF
-		}
-		$fh->print (<<EOF);
-\t},
-EOF
-	}
-}
-
-sub writeAllowRx {
-	my $self = shift;
-	my $fh = shift;
-
-	if (scalar ($self->valuesAllowRx ())) {
-		my $an = $self->escQuote( $self->getAttributeName ());
-		my $dv = $self->escQuote (sort ($self->valuesAllowRx ()));
-		$fh->print (<<EOF);
-\t$an => [ $dv ],
-EOF
-	}
-}
-
-sub writeAllowValue {
-	my $self = shift;
-	my $fh = shift;
-
-	if (scalar ($self->valuesAllowValue ())) {
-		my $an = $self->escQuote( $self->getAttributeName ());
-		$fh->print (<<EOF);
-\t$an => {
-EOF
-		my @dv = sort ($self->escQuoteL ($self->valuesAllowValue ()));
-		foreach my $dv (@dv) {
-			$fh->print (<<EOF);
-\t\t$dv => 1,
-EOF
-		}
-		$fh->print (<<EOF);
-\t},
-EOF
-	}
-}
-
 sub escQuoteL {
 	my $self = shift;
 
@@ -750,134 +898,6 @@ sub escQuoteL {
 		push (@el, $el);
 	}
 	return (@el);
-}
-
-sub escQuote {
-	my $self = shift;
-
-	my @in = @_;
-	my @el = ();
-	foreach my $el (@in) {
-		if ($el =~ /^\s*[+-]?\s*\d*$/) {
-			$el = (int ($el));
-		} else {
-			$el =~ s/'/\\'/g;
-			$el = '\'' . $el . '\'';
-		}
-		push (@el, $el);
-	}
-	return (join (', ', @el));
-}
-
-sub writeDefaultValue {
-	my $self = shift;
-	my $fh = shift;
-
-	defined ($self->getDefaultValue ()) || return;
-
-	my $an = $self->escQuote( $self->getAttributeName ());
-	my $dv = $self->escQuote ($self->getDefaultValue ());
-	$fh->print (<<EOF);
-\t$an => $dv,
-EOF
-}
-
-sub writeOptInit {
-	my $self = shift;
-	my $fh = shift;
-
-	my $an = $self->getAttributeName ();
-	my $mb = $self->getMethodBase ();
-	my $ec = $self->getExceptionClass ();
-	my $pkg = $self->getPackage ();
-
-	# Comment
-	$fh->print ("\t# $an, ", $self->type ());
-	$self->isMandatory () && $fh->print (', mandatory');
-	defined ($self->getDefaultValue ()) && $fh->print (', with default value');
-	$fh->print ("\n");
-
-	# isMandatory check
-	if ($self->isMandatory ()) {
-		$fh->print (<<EOF);
-	exists (\$opt->{$an}) || throw $ec ("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
-EOF
-	}
-
-	if ($self->isMandatory ()) {
-		$fh->print (<<EOF);
-	\$self->set$mb (\$opt->{$an});
-EOF
-	} else {
-		if (defined ($self->getDefaultValue ())) {
-		$fh->print (<<EOF);
-	\$self->set$mb (exists (\$opt->{$an}) ? \$opt->{$an} : \$DEFAULT_VALUE{$an});
-EOF
-		} else {
-		$fh->print (<<EOF);
-	exists (\$opt->{$an}) && \$self->set$mb (\$opt->{$an});
-EOF
-		}
-	}
-
-	# Empty line
-	$fh->print ("\n");
-}
-
-
-sub writeDocInit {
-	my $self = shift;
-	my $fh = shift;
-
-	my $an = $self->getAttributeName ();
-	my $mb = $self->getMethodBase ();
-	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
-	my $def = '';
-	if (defined ($self->getDefaultValue ())) {
-		$def = ' Defaults to B<' . $self->getDefaultValue () . '>.';
-	}
-
-	$fh->print (<<EOF);
-\=item B<C<$an>>
-
-Passed to L<set$mb ()>.${mand}${def}
-
-EOF
-}
-
-sub writeMethods {
-	my $self = shift;
-	my $fh = shift;
-
-	$self->writeSetMethod ($fh);
-	$self->writeGetMethod ($fh);
-
-}
-
-sub writeDocMethods {
-	my $self = shift;
-	my $fh = shift;
-
-	$self->writeSetDoc ($fh);
-	$self->writeGetDoc ($fh);
-}
-
-sub writeDocInheritMethods {
-	my $self = shift;
-	my $fh = shift;
-
-	my $mb = $self->getMethodBase ();
-
-	my @meth = ();
-	foreach my $op (qw (set get)) {
-		push (@meth, "$op$mb ()");
-	}
-	my $meth = join (', ', @meth);
-
-	$fh->print (<<EOF);
-$meth
-
-EOF
 }
 
 sub writeSetMethod {
@@ -1086,5 +1106,4 @@ EOF
 
 EOF
 }
-
 

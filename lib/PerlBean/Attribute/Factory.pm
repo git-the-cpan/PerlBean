@@ -6,7 +6,7 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -64,6 +64,10 @@ Options for C<OPT_HASH_REF> used by this method may include:
 =over
 
 =item associative
+
+Boolean flag. States that the returned attribute must be unique, associative C<MULTI>. Defaults to B<0>. Only makes sense if C<type> is B<MULTI> and B<unique> is true.
+
+=item method_key
 
 Boolean flag. States that the returned attribute must be unique, associative C<MULTI>. Defaults to B<0>. Only makes sense if C<type> is B<MULTI> and B<unique> is true.
 
@@ -152,9 +156,11 @@ L<PerlBean::Attribute::Multi>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -170,7 +176,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -229,9 +235,15 @@ sub createAttribute {
 				import PerlBean::Attribute::Multi::Unique::Ordered;
 				return (PerlBean::Attribute::Multi::Unique::Ordered->new ($opt));
 			} elsif ($opt->{associative}) {
-				require PerlBean::Attribute::Multi::Unique::Associative;
-				import PerlBean::Attribute::Multi::Unique::Associative;
-				return (PerlBean::Attribute::Multi::Unique::Associative->new ($opt));
+				if ($opt->{method_key}) {
+					require PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
+					import PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
+					return (PerlBean::Attribute::Multi::Unique::Associative::MethodKey->new ($opt));
+				} else {
+					require PerlBean::Attribute::Multi::Unique::Associative;
+					import PerlBean::Attribute::Multi::Unique::Associative;
+					return (PerlBean::Attribute::Multi::Unique::Associative->new ($opt));
+				}
 			} else {
 				require PerlBean::Attribute::Multi::Unique;
 				import PerlBean::Attribute::Multi::Unique;

@@ -8,7 +8,7 @@ use AutoLoader qw (AUTOLOAD);
 
 use base qw (PerlBean::Attribute::Single);
 
-our ( $VERSION ) = '$Revision: 0.2.0.2 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -100,6 +100,72 @@ Passed to L<setAllowValue ()>. Must be an C<ARRAY> reference.
 
 =back
 
+=head1 METHODS
+
+=over
+
+=item getOverloadedAttribute ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned
+
+=item getPackage ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
+
+=item getPackageUS ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Calls C<getPackage ()> and replaces C<:+> with C <_>.
+
+=item type ()
+
+This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
+
+=item writeAllowIsa (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowRef (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowRx (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeAllowValue (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDefaultValue (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocClauses (FILEHANDLE)
+
+This method is inherited from package C<'PerlBean::Attribute'>. Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocInheritMethods (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+
+=item writeDocInit (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=item writeDocMethods (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+
+=item writeMethods (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+
+=item writeOptInit (FILEHANDLE)
+
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+
+=back
+
 =head1 INHERITED METHODS FROM PerlBean::Attribute
 
 =over
@@ -169,9 +235,11 @@ L<PerlBean::Attribute::Factory>,
 L<PerlBean::Attribute::Multi::Ordered>,
 L<PerlBean::Attribute::Multi::Unique>,
 L<PerlBean::Attribute::Multi::Unique::Associative>,
+L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
-L<PerlBean::Collection>
+L<PerlBean::Collection>,
+L<PerlBean::Method>
 
 =head1 BUGS
 
@@ -187,7 +255,7 @@ Vincenzo Zocca
 
 =head1 COPYRIGHT
 
-Copyright 2002 by Vincenzo Zocca
+Copyright 2002, 2003 by Vincenzo Zocca
 
 =head1 LICENSE
 
@@ -222,6 +290,46 @@ sub writeDefaultValue {
 	$fh->print (<<EOF);
 \t$an => [ $dv ],
 EOF
+}
+
+sub writeDocInheritMethods {
+	my $self = shift;
+
+	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeDocInheritMethods, call this method in a subclass that has implemented it.");
+}
+
+sub writeDocInit {
+	my $self = shift;
+	my $fh = shift;
+
+	my $an = $self->getAttributeName ();
+	my $mb = $self->getMethodBase ();
+	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
+	my $multi = ($self->isa ('PerlBean::Attribute::Multi')) ? ' Must be an C<ARRAY> reference.' : '';
+	my $def = '';
+	if (defined ($self->getDefaultValue ())) {
+		my $list = join ('> , B<', $self->escQuoteL (@{$self->getDefaultValue ()}));
+		$def = ' Defaults to B<[> B<' . $list . '> B<]>.';
+	}
+
+	$fh->print (<<EOF);
+\=item B<C<$an>>
+
+Passed to L<set$mb ()>.${multi}${mand}${def}
+
+EOF
+}
+
+sub writeDocMethods {
+	my $self = shift;
+
+	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeDocMethods, call this method in a subclass that has implemented it.");
+}
+
+sub writeMethods {
+	my $self = shift;
+
+	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeMethods, call this method in a subclass that has implemented it.");
 }
 
 sub writeOptInit {
@@ -281,28 +389,6 @@ EOF
 	$fh->print ("\n");
 }
 
-
-sub writeDocInit {
-	my $self = shift;
-	my $fh = shift;
-
-	my $an = $self->getAttributeName ();
-	my $mb = $self->getMethodBase ();
-	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
-	my $multi = ($self->isa ('PerlBean::Attribute::Multi')) ? ' Must be an C<ARRAY> reference.' : '';
-	my $def = '';
-	if (defined ($self->getDefaultValue ())) {
-		my $list = join ('> , B<', $self->escQuoteL (@{$self->getDefaultValue ()}));
-		$def = ' Defaults to B<[> B<' . $list . '> B<]>.';
-	}
-
-	$fh->print (<<EOF);
-\=item B<C<$an>>
-
-Passed to L<set$mb ()>.${multi}${mand}${def}
-
-EOF
-}
 
 sub writeDocClausesAllowIsa {
 	my $self = shift;
