@@ -3,12 +3,13 @@ package PerlBean::Attribute::Multi;
 use 5.005;
 use strict;
 use warnings;
-use Error qw (:try);
-use AutoLoader qw (AUTOLOAD);
+use Error qw(:try);
+use AutoLoader qw(AUTOLOAD);
+use PerlBean::Style qw(:codegen);
 
-use base qw (PerlBean::Attribute::Single);
+use base qw(PerlBean::Attribute::Single);
 
-our ( $VERSION ) = '$Revision: 0.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -34,7 +35,7 @@ C<PerlBean::Attribute::Multi> is a subclass of C<PerlBean::Attribute> and it's o
 
 =over
 
-=item new (OPT_HASH_REF)
+=item new(OPT_HASH_REF)
 
 Creates a new C<PerlBean::Attribute::Multi> object. C<OPT_HASH_REF> is a hash reference used to pass initialization options. C<OPT_HASH_REF> is mandatory. On error an exception C<Error::Simple> is thrown.
 
@@ -44,31 +45,31 @@ Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Attribute>> 
 
 =item B<C<attribute_name>>
 
-Passed to L<setAttributeName ()>. Mandatory option.
+Passed to L<set_attribute_name()>. Mandatory option.
 
 =item B<C<default_value>>
 
-Passed to L<setDefaultValue ()>.
+Passed to L<set_default_value()>.
 
 =item B<C<exception_class>>
 
-Passed to L<setExceptionClass ()>. Defaults to B<Error::Simple>.
+Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
 
 =item B<C<mandatory>>
 
-Passed to L<setMandatory ()>. Defaults to B<0>.
+Passed to L<set_mandatory()>. Defaults to B<0>.
 
 =item B<C<method_base>>
 
-Passed to L<setMethodBase ()>.
+Passed to L<set_method_base()>.
 
 =item B<C<perl_bean>>
 
-Passed to L<setPerlBean ()>.
+Passed to L<set_perl_bean()>.
 
 =item B<C<short_description>>
 
-Passed to L<setShortDescription ()>.
+Passed to L<set_short_description()>.
 
 =back
 
@@ -78,23 +79,23 @@ Options for C<OPT_HASH_REF> inherited through package B<C<PerlBean::Attribute::S
 
 =item B<C<allow_empty>>
 
-Passed to L<setAllowEmpty ()>. Defaults to B<1>.
+Passed to L<set_allow_empty()>. Defaults to B<1>.
 
 =item B<C<allow_isa>>
 
-Passed to L<setAllowIsa ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_isa()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_ref>>
 
-Passed to L<setAllowRef ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_ref()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_rx>>
 
-Passed to L<setAllowRx ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_rx()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_value>>
 
-Passed to L<setAllowValue ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_value()>. Must be an C<ARRAY> reference.
 
 =back
 
@@ -104,65 +105,65 @@ Passed to L<setAllowValue ()>. Must be an C<ARRAY> reference.
 
 =over
 
-=item getOverloadedAttribute ()
+=item get_overloaded_attribute()
 
-This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned
+This method is inherited from package C<'PerlBean::Attribute'>. Searches superclass packages for an identically named C<PerlBean::Attribute>. If found it is returned otherwise C<undef> is returned.
 
-=item getPackage ()
+=item get_package()
 
 This method is inherited from package C<'PerlBean::Attribute'>. Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
 
-=item getPackageUS ()
+=item get_package_us()
 
-This method is inherited from package C<'PerlBean::Attribute'>. Calls C<getPackage ()> and replaces C<:+> with C <_>.
+This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_package()> and replaces C<:+> with C <_>.
 
-=item type ()
+=item type()
 
 This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item writeAllowIsa (FILEHANDLE)
+=item write_allow_isa(FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeAllowRef (FILEHANDLE)
+=item write_allow_ref(FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeAllowRx (FILEHANDLE)
+=item write_allow_rx(FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeAllowValue (FILEHANDLE)
+=item write_allow_value(FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeDefaultValue (FILEHANDLE)
+=item write_default_value(FILEHANDLE)
 
 This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeDocClauses (FILEHANDLE)
+=item write_doc_clauses(FILEHANDLE)
 
 This method is inherited from package C<'PerlBean::Attribute'>. Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeDocInheritMethods (FILEHANDLE)
+=item write_doc_inherit_methods(FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+This is an interface method. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeDocInit (FILEHANDLE)
+=item write_doc_init(FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for C<_initialize ()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for C<_initialize()> for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeDocMethods (FILEHANDLE)
+=item write_doc_methods(FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+This is an interface method. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeMethods (FILEHANDLE)
+=item write_methods(FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. As package C<PerlBean::Attribute::Multi> is intended to group its subclasses this method actually throws an exception.
+This is an interface method. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
-=item writeOptInit (FILEHANDLE)
+=item write_opt_init(FILEHANDLE)
 
-This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<_initialize ()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes C<_initialize()> option parsing code for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
 
 =back
 
@@ -172,31 +173,31 @@ This method is overloaded from package C<'PerlBean::Attribute::Single'>. Writes 
 
 =item To access attribute named B<C<attribute_name>>:
 
-setAttributeName (), getAttributeName ()
+set_attribute_name(), get_attribute_name()
 
 =item To access attribute named B<C<default_value>>:
 
-setDefaultValue (), getDefaultValue ()
+set_default_value(), get_default_value()
 
 =item To access attribute named B<C<exception_class>>:
 
-setExceptionClass (), getExceptionClass ()
+set_exception_class(), get_exception_class()
 
 =item To access attribute named B<C<mandatory>>:
 
-setMandatory (), isMandatory ()
+set_mandatory(), is_mandatory()
 
 =item To access attribute named B<C<method_base>>:
 
-setMethodBase (), getMethodBase ()
+set_method_base(), get_method_base()
 
 =item To access attribute named B<C<perl_bean>>:
 
-setPerlBean (), getPerlBean ()
+set_perl_bean(), get_perl_bean()
 
 =item To access attribute named B<C<short_description>>:
 
-setShortDescription (), getShortDescription ()
+set_short_description(), get_short_description()
 
 =back
 
@@ -206,23 +207,23 @@ setShortDescription (), getShortDescription ()
 
 =item To access attribute named B<C<allow_empty>>:
 
-setAllowEmpty (), isAllowEmpty ()
+set_allow_empty(), is_allow_empty()
 
 =item To access attribute named B<C<allow_isa>>:
 
-setAllowIsa (), addAllowIsa (), deleteAllowIsa (), existsAllowIsa (), valuesAllowIsa ()
+set_allow_isa(), add_allow_isa(), delete_allow_isa(), exists_allow_isa(), values_allow_isa()
 
 =item To access attribute named B<C<allow_ref>>:
 
-setAllowRef (), addAllowRef (), deleteAllowRef (), existsAllowRef (), valuesAllowRef ()
+set_allow_ref(), add_allow_ref(), delete_allow_ref(), exists_allow_ref(), values_allow_ref()
 
 =item To access attribute named B<C<allow_rx>>:
 
-setAllowRx (), addAllowRx (), deleteAllowRx (), existsAllowRx (), valuesAllowRx ()
+set_allow_rx(), add_allow_rx(), delete_allow_rx(), exists_allow_rx(), values_allow_rx()
 
 =item To access attribute named B<C<allow_value>>:
 
-setAllowValue (), addAllowValue (), deleteAllowValue (), existsAllowValue (), valuesAllowValue ()
+set_allow_value(), add_allow_value(), delete_allow_value(), exists_allow_value(), values_allow_value()
 
 =back
 
@@ -239,7 +240,9 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
-L<PerlBean::Method>
+L<PerlBean::Method>,
+L<PerlBean::Method::Constructor>,
+L<PerlBean::Style>
 
 =head1 BUGS
 
@@ -279,219 +282,214 @@ Boston, MA 02111-1307 USA
 
 =cut
 
-sub writeDefaultValue {
-	my $self = shift;
-	my $fh = shift;
+sub write_default_value {
+    my $self = shift;
+    my $fh = shift;
 
-	defined ($self->getDefaultValue ()) || return;
+    defined( $self->get_default_value() ) || return;
 
-	my $an = $self->escQuote( $self->getAttributeName ());
-	my $dv = $self->escQuote (@{$self->getDefaultValue ()});
-	$fh->print (<<EOF);
-\t$an => [ $dv ],
+    my $an = $self->esc_aq( $self->get_attribute_name() );
+    my $dv = $self->esc_aq( @{ $self->get_default_value() } );
+    $fh->print(<<EOF);
+${IND}$an${AO}=>${AO}[$dv],
 EOF
 }
 
-sub writeDocInheritMethods {
-	my $self = shift;
-
-	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeDocInheritMethods, call this method in a subclass that has implemented it.");
+sub write_doc_inherit_methods {
+    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_doc_inherit_methods, call this method in a subclass that has implemented it.");
 }
 
-sub writeDocInit {
-	my $self = shift;
-	my $fh = shift;
+sub write_doc_init {
+    my $self = shift;
+    my $fh = shift;
 
-	my $an = $self->getAttributeName ();
-	my $mb = $self->getMethodBase ();
-	my $mand = $self->isMandatory () ? ' Mandatory option.' : '';
-	my $multi = ($self->isa ('PerlBean::Attribute::Multi')) ? ' Must be an C<ARRAY> reference.' : '';
-	my $def = '';
-	if (defined ($self->getDefaultValue ())) {
-		my $list = join ('> , B<', $self->escQuoteL (@{$self->getDefaultValue ()}));
-		$def = ' Defaults to B<[> B<' . $list . '> B<]>.';
-	}
+    my $an = $self->get_attribute_name();
+    my $mb = $self->get_method_base();
+    my $mand = $self->is_mandatory() ? ' Mandatory option.' : '';
+    my $multi = ( $self->isa('PerlBean::Attribute::Multi') ) ? ' Must be an C<ARRAY> reference.' : '';
+    my $def = '';
+    if ( defined( $self->get_default_value() ) ) {
+        my $list = join( '> , B<', $self->esc_aq( @{ $self->get_default_value() } ) );
+        $def = ' Defaults to B<[> B<' . $list . '> B<]>.';
+    }
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=item B<C<$an>>
 
-Passed to L<set$mb ()>.${multi}${mand}${def}
+Passed to L<set$mb${BFP}()>.${multi}${mand}${def}
 
 EOF
 }
 
-sub writeDocMethods {
-	my $self = shift;
-
-	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeDocMethods, call this method in a subclass that has implemented it.");
+sub write_doc_methods {
+    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_doc_methods, call this method in a subclass that has implemented it.");
 }
 
-sub writeMethods {
-	my $self = shift;
-
-	throw Error::Simple ("ERROR: PerlBean::Attribute::Multi::writeMethods, call this method in a subclass that has implemented it.");
+sub write_methods {
+    throw Error::Simple("ERROR: PerlBean::Attribute::Multi::write_methods, call this method in a subclass that has implemented it.");
 }
 
-sub writeOptInit {
-	my $self = shift;
-	my $fh = shift;
+sub write_opt_init {
+    my $self = shift;
+    my $fh = shift;
 
-	my $an = $self->getAttributeName ();
-	my $mb = $self->getMethodBase ();
-	my $ec = $self->getExceptionClass ();
-	my $pkg = $self->getPerlBean ()->getPackage ();
+    my $an = $self->get_attribute_name();
+    my $mb = $self->get_method_base();
+    my $ec = $self->get_exception_class();
+    my $pkg = $self->get_perl_bean()->get_package();
 
-	# Comment
-	$fh->print ("\t# $an, ", $self->type ());
-	$self->isMandatory () && $fh->print (', mandatory');
-	defined ($self->getDefaultValue ()) && $fh->print (', with default value');
-	$fh->print ("\n");
+    # Comment
+    $fh->print( "${IND}# $an, ", $self->type() );
+    $self->is_mandatory() && $fh->print(', mandatory');
+    defined( $self->get_default_value() ) && $fh->print(', with default value');
+    $fh->print("\n");
 
-	# isMandatory check
-	if ($self->isMandatory ()) {
-		$fh->print (<<EOF);
-	exists (\$opt->{$an}) || throw $ec ("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
+    # is_mandatory check
+    if ( $self->is_mandatory() ) {
+        $fh->print(<<EOF);
+${IND}exists${BFP}(${ACS}\$opt->{$an}${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::_initialize, option '$an' is mandatory.");
 EOF
-	}
+    }
 
-	my $pre = '';
-	if (! $self->isMandatory ()) {
-		$pre .= "\t";
-		$fh->print (<<EOF);
-	if (exists (\$opt->{$an})) {
+    my $pre = '';
+    if ( ! $self->is_mandatory() ) {
+        $pre .= "${IND}";
+        $fh->print(<<EOF);
+${IND}if${BCP}(${ACS}exists${BFP}(${ACS}\$opt->{$an}${ACS})${ACS})${PBOC[1]}{
 EOF
-	}
-	$fh->print (<<EOF);
-	${pre}ref (\$opt->{$an}) eq 'ARRAY' || throw $ec ("ERROR: ${pkg}::_initialize, specified value for option '$an' must be an 'ARRAY' reference.");
-	${pre}\$self->set$mb (\@{\$opt->{$an}});
+    }
+    $fh->print(<<EOF);
+${IND}${pre}ref${BFP}(${ACS}\$opt->{$an}${ACS})${AO}eq${AO}'ARRAY'${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::_initialize, specified value for option '$an' must be an 'ARRAY' reference.");
+${IND}${pre}\$self->set$mb${BFP}(${ACS}\@{${ACS}\$opt->{$an}${ACS}}${ACS});
 EOF
-	# default value
-	if (! $self->isMandatory ()) {
-		if (defined ($self->getDefaultValue ())) {
-			$fh->print (<<EOF);
-	} else {
-		\$self->set$mb (\@{\$DEFAULT_VALUE{$an}});
+    # default value
+    if ( ! $self->is_mandatory() ) {
+        if ( defined( $self->get_default_value() ) ) {
+            $fh->print(<<EOF);
+${IND}}${PBCC[1]}else${PBOC[1]}{
+${IND}${IND}\$self->set$mb${BFP}(${ACS}\@{${ACS}\$DEFAULT_VALUE{$an}${ACS}}${ACS});
 EOF
-		} else {
-			$fh->print (<<EOF);
-	} else {
-		\$self->set$mb ();
+        }
+        else {
+            $fh->print(<<EOF);
+${IND}}${PBCC[1]}else${PBOC[1]}{
+${IND}${IND}\$self->set$mb${BFP}();
 EOF
-			}
-		}
-	if (! $self->isMandatory ()) {
-		$fh->print (<<EOF);
-	}
+            }
+        }
+    if ( ! $self->is_mandatory()) {
+        $fh->print(<<EOF);
+${IND}}
 EOF
-	}
+    }
 
-	# Empty line
-	$fh->print ("\n");
+    # Empty line
+    $fh->print("\n");
 }
 
 
-sub writeDocClausesAllowIsa {
-	my $self = shift;
-	my $fh = shift;
+sub write_doc_clauses_allow_isa {
+    my $self = shift;
+    my $fh = shift;
 
-	return if (!scalar ($self->valuesAllowIsa ()));
+    return if ( ! scalar( $self->values_allow_isa() ) );
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=item The values in C<ARRAY> must be a (sub)class of:
 
 \=over
 
 EOF
 
-	foreach my $class (sort ($self->valuesAllowIsa ())) {
-		$fh->print (<<EOF);
+    foreach my $class ( sort( $self->values_allow_isa() ) ) {
+        $fh->print(<<EOF);
 \=item ${class}
 
 EOF
-	}
+    }
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=back
 
 EOF
 }
 
-sub writeDocClausesAllowRef {
-	my $self = shift;
-	my $fh = shift;
+sub write_doc_clauses_allow_ref {
+    my $self = shift;
+    my $fh = shift;
 
-	return if (!scalar ($self->valuesAllowRef ()));
-	my $or = scalar ($self->valuesAllowIsa ()) ? 'Or, the' : 'The';
+    return if ( ! scalar( $self->values_allow_ref() ) );
+    my $or = scalar( $self->values_allow_isa() ) ? 'Or, the' : 'The';
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=item ${or} values in C<ARRAY> must be a reference of:
 
 \=over
 
 EOF
 
-	foreach my $class (sort ($self->valuesAllowRef ())) {
-		$fh->print (<<EOF);
+    foreach my $class ( sort( $self->values_allow_ref() ) ) {
+        $fh->print(<<EOF);
 \=item ${class}
 
 EOF
-	}
+    }
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=back
 
 EOF
 }
 
-sub writeDocClausesAllowRx {
-	my $self = shift;
-	my $fh = shift;
+sub write_doc_clauses_allow_rx {
+    my $self = shift;
+    my $fh = shift;
 
-	return if (!scalar ($self->valuesAllowRx ()));
-	my $or = scalar ($self->valuesAllowIsa () || $self->valuesAllowRef ()) ? 'Or, the' : 'The';
+    return if ( ! scalar( $self->values_allow_rx() ) );
+    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() ) ? 'Or, the' : 'The';
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=item ${or} values in C<ARRAY> must match regular expression:
 
 \=over
 
 EOF
 
-	foreach my $class (sort ($self->valuesAllowRx ())) {
-		$fh->print (<<EOF);
+    foreach my $class ( sort( $self->values_allow_rx() ) ) {
+        $fh->print(<<EOF);
 \=item ${class}
 
 EOF
-	}
+    }
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=back
 
 EOF
 }
 
-sub writeDocClausesAllowValue {
-	my $self = shift;
-	my $fh = shift;
+sub write_doc_clauses_allow_value {
+    my $self = shift;
+    my $fh = shift;
 
-	return if (!scalar ($self->valuesAllowValue ()));
-	my $or = scalar ($self->valuesAllowIsa () || $self->valuesAllowRef () || $self->valuesAllowRx ()) ? 'Or, the' : 'The';
+    return if ( ! scalar( $self->values_allow_value() ) );
+    my $or = scalar( $self->values_allow_isa() || $self->values_allow_ref() || $self->values_allow_rx() ) ? 'Or, the' : 'The';
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=item ${or} values in C<ARRAY> must be a one of:
 
 \=over
 
 EOF
 
-	foreach my $class (sort ($self->valuesAllowValue ())) {
-		$fh->print (<<EOF);
-\=item ${class}
+    foreach my $val ( sort( $self->values_allow_value() ) ) {
+        $fh->print(<<EOF);
+\=item ${val}
 
 EOF
-	}
+    }
 
-	$fh->print (<<EOF);
+    $fh->print(<<EOF);
 \=back
 
 EOF

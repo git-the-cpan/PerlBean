@@ -30,26 +30,26 @@ EOF
 chomp ($lic);
 
 foreach my $fn (<attr-*.pl>) {
-	require $fn;
+    require $fn;
 }
 
-my $collection = PerlBean::Collection->new ({license => $lic});
-my $factory = PerlBean::Attribute::Factory->new ();
+my $collection = PerlBean::Collection->new({license => $lic});
+my $factory = PerlBean::Attribute::Factory->new();
 
 foreach my $bean_desc (@::bean_desc) {
-	my $bean = PerlBean->new ($bean_desc->{bean_opt});
-	foreach my $attr_opt (@{$bean_desc->{attr_opt}}) {
-		my $attr = $factory->createAttribute ($attr_opt);
-		$bean->addAttribute ($attr);
-	}
-	$collection->addPerlBean ($bean);
+    my $bean = PerlBean->new($bean_desc->{bean_opt});
+    foreach my $attr_opt (@{$bean_desc->{attr_opt}}) {
+        my $attr = $factory->create_attribute($attr_opt);
+        $bean->add_attribute($attr);
+    }
+    $collection->add_perl_bean($bean);
 }
 
 # Revove the old tmp directory
 system ('rm -rf tmp');
 
 # Make a new tmp directory
-mkdir ('tmp');
+mkdir('tmp');
 
 # Write the hierarch
-$collection->write ('tmp');
+$collection->write('tmp');

@@ -3,10 +3,10 @@ package PerlBean::Attribute::Factory;
 use 5.005;
 use strict;
 use warnings;
-use Error qw (:try);
-use AutoLoader qw (AUTOLOAD);
+use Error qw(:try);
+use AutoLoader qw(AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -20,18 +20,18 @@ PerlBean::Attribute::Factory - factory package to generate C<PerlBean::Attribute
 
  use strict;
  use PerlBean::Attribute::Factory;
- my $factory = PerlBean::Attribute::Factory->new ();
- my $attr = $factory->createAttribute ({
- 	type => 'BOOLEAN',
- 	attribute_name => 'true',
- 	short_description => 'something is true',
- });
+ my $factory = PerlBean::Attribute::Factory->new();
+ my $attr = $factory->create_attribute( {
+     type => 'BOOLEAN',
+     attribute_name => 'true',
+     short_description => 'something is true',
+ } );
  
  use IO::File;
- -d 'tmp' || mkdir ('tmp');
- my $fh = IO::File->new ('> tmp/PerlBean_Attribute_Factory.pl.out');
- $attr->writeMethods ($fh);
- $attr->writeDocMethods ($fh);
+ -d 'tmp' || mkdir('tmp');
+ my $fh = IO::File->new('> tmp/PerlBean_Attribute_Factory.pl.out');
+ $attr->write_methods($fh);
+ $attr->write_doc_methods($fh);
 
 =head1 ABSTRACT
 
@@ -45,7 +45,7 @@ C<PerlBean::Attribute::Factory> objects create instances of C<PerlBean::Attribut
 
 =over
 
-=item new ()
+=item new()
 
 Creates a new C<PerlBean::Attribute::Factory> object.
 
@@ -55,7 +55,7 @@ Creates a new C<PerlBean::Attribute::Factory> object.
 
 =over
 
-=item createAttribute (OPT_HASH_REF)
+=item create_attribute(OPT_HASH_REF)
 
 Returns C<PerlBean::Attribute> objects based on C<OPT_HASH_REF>. C<OPT_HASH_REF> is a hash reference used to pass initialization options. The selected subclass of C<PerlBean::Attribute> is initialized using C<OPT_HASH_REF>. On error an exception C<Error::Simple> is thrown.
 
@@ -77,7 +77,7 @@ Boolean flag. States that the returned attribute must be an ordered list. Defaul
 
 =item type
 
-If C<type> is B<BOOLEAN> a C<PerlBean::Attribute::Boolean>, on B<SINGLE> a C<PerlBean::Attribute::Single> and on B<MULTI> a C<PerlBean::Attribute::Multi> is returned. Defaults to B<SINGLE>. B<NOTE:> B<type> has precedence over B<ordered> and B<unique>.
+If C<type> is B<BOOLEAN> a C<PerlBean::Attribute::Boolean>, on B<SINGLE> a C<PerlBean::Attribute::Single> and on B<MULTI> a C<PerlBean::Attribute::Multi> is returned. Defaults to B<'SINGLE'>. B<NOTE:> B<type> has precedence over B<ordered> and B<unique>.
 
 =item unique
 
@@ -91,31 +91,31 @@ Options for C<OPT_HASH_REF> passed to package B<C<PerlBean::Attribute>> may incl
 
 =item B<C<attribute_name>>
 
-Passed to L<setAttributeName ()>. Mandatory option.
+Passed to L<set_attribute_name()>. Mandatory option.
 
 =item B<C<default_value>>
 
-Passed to L<setDefaultValue ()>.
+Passed to L<set_default_value()>.
 
 =item B<C<exception_class>>
 
-Passed to L<setExceptionClass ()>. Defaults to B<Error::Simple>.
+Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
 
 =item B<C<mandatory>>
 
-Passed to L<setMandatory ()>. Defaults to B<0>.
+Passed to L<set_mandatory()>. Defaults to B<0>.
 
 =item B<C<method_base>>
 
-Passed to L<setMethodBase ()>.
+Passed to L<set_method_base()>.
 
 =item B<C<perl_bean>>
 
-Passed to L<setPerlBean ()>.
+Passed to L<set_perl_bean()>.
 
 =item B<C<short_description>>
 
-Passed to L<setShortDescription ()>.
+Passed to L<set_short_description()>.
 
 =back
 
@@ -125,23 +125,23 @@ Options for C<OPT_HASH_REF> passed to package B<C<PerlBean::Attribute::Single>> 
 
 =item B<C<allow_empty>>
 
-Passed to L<setAllowEmpty ()>. Defaults to B<1>.
+Passed to L<set_allow_empty()>. Defaults to B<1>.
 
 =item B<C<allow_isa>>
 
-Passed to L<setAllowIsa ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_isa()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_ref>>
 
-Passed to L<setAllowRef ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_ref()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_rx>>
 
-Passed to L<setAllowRx ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_rx()>. Must be an C<ARRAY> reference.
 
 =item B<C<allow_value>>
 
-Passed to L<setAllowValue ()>. Must be an C<ARRAY> reference.
+Passed to L<set_allow_value()>. Must be an C<ARRAY> reference.
 
 =back
 
@@ -160,7 +160,9 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
-L<PerlBean::Method>
+L<PerlBean::Method>,
+L<PerlBean::Method::Constructor>,
+L<PerlBean::Style>
 
 =head1 BUGS
 
@@ -201,61 +203,61 @@ Boston, MA 02111-1307 USA
 =cut
 
 sub new {
-	my $class = shift;
+    my $class = shift;
 
-	my $self = {};
-	bless ($self, (ref($class) || $class));
-	return ($self->_initialize (@_));
+    my $self = {};
+    bless( $self, ( ref($class) || $class ) );
+    return( $self->_initialize(@_) );
 }
 
 sub _initialize {
-	my $self = shift;
+    my $self = shift;
 
-	# Return $self
-	return ($self);
+    # Return $self
+    return($self);
 }
 
-sub createAttribute {
-	my $self = shift;
-	my $opt = shift || {};
+sub create_attribute {
+    my $self = shift;
+    my $opt = shift || {};
 
-	# Switch attribute type
-	if (!defined ($opt->{type}) || $opt->{type} eq 'SINGLE') {
-		require PerlBean::Attribute::Single;
-		import PerlBean::Attribute::Single;
-		return (PerlBean::Attribute::Single->new ($opt));
-	} elsif ($opt->{type} eq 'BOOLEAN') {
-		require PerlBean::Attribute::Boolean;
-		import PerlBean::Attribute::Boolean;
-		return (PerlBean::Attribute::Boolean->new ($opt));
-	} elsif ($opt->{type} eq 'MULTI') {
-		if ($opt->{unique}) {
-			if ($opt->{ordered}) {
-				require PerlBean::Attribute::Multi::Unique::Ordered;
-				import PerlBean::Attribute::Multi::Unique::Ordered;
-				return (PerlBean::Attribute::Multi::Unique::Ordered->new ($opt));
-			} elsif ($opt->{associative}) {
-				if ($opt->{method_key}) {
-					require PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
-					import PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
-					return (PerlBean::Attribute::Multi::Unique::Associative::MethodKey->new ($opt));
-				} else {
-					require PerlBean::Attribute::Multi::Unique::Associative;
-					import PerlBean::Attribute::Multi::Unique::Associative;
-					return (PerlBean::Attribute::Multi::Unique::Associative->new ($opt));
-				}
-			} else {
-				require PerlBean::Attribute::Multi::Unique;
-				import PerlBean::Attribute::Multi::Unique;
-				return (PerlBean::Attribute::Multi::Unique->new ($opt));
-			}
-		} else {
-			require PerlBean::Attribute::Multi::Ordered;
-			import PerlBean::Attribute::Multi::Ordered;
-			return (PerlBean::Attribute::Multi::Ordered->new ($opt));
-		}
-	} else {
-		throw Error::Simple ("ERROR: PerlBean::Attribute::Factory::attribute, option 'type' must be one of 'BOOLEAN', 'SINGLE' or 'MULTI' and NOT '$opt->{type}'.");
-	}
+    # Switch attribute type
+    if ( ! defined($opt->{type} ) || $opt->{type} eq 'SINGLE') {
+        require PerlBean::Attribute::Single;
+        return( PerlBean::Attribute::Single->new($opt) );
+    }
+    elsif ( $opt->{type} eq 'BOOLEAN' ) {
+        require PerlBean::Attribute::Boolean;
+        return( PerlBean::Attribute::Boolean->new($opt) );
+    }
+    elsif ( $opt->{type} eq 'MULTI' ) {
+        if ( $opt->{unique} ) {
+            if ( $opt->{ordered} ) {
+                require PerlBean::Attribute::Multi::Unique::Ordered;
+                return( PerlBean::Attribute::Multi::Unique::Ordered->new($opt) );
+            }
+            elsif ( $opt->{associative} ) {
+                if ( $opt->{method_key} ) {
+                    require PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
+                    return( PerlBean::Attribute::Multi::Unique::Associative::MethodKey->new($opt) );
+                }
+                else {
+                    require PerlBean::Attribute::Multi::Unique::Associative;
+                    return( PerlBean::Attribute::Multi::Unique::Associative->new($opt) );
+                }
+            }
+            else {
+                require PerlBean::Attribute::Multi::Unique;
+                return( PerlBean::Attribute::Multi::Unique->new($opt) );
+            }
+        }
+        else {
+            require PerlBean::Attribute::Multi::Ordered;
+            return( PerlBean::Attribute::Multi::Ordered->new($opt) );
+        }
+    }
+    else {
+        throw Error::Simple("ERROR: PerlBean::Attribute::Factory::attribute, option 'type' must be one of 'BOOLEAN', 'SINGLE' or 'MULTI' and NOT '$opt->{type}'.");
+    }
 }
 

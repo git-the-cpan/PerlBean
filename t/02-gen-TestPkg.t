@@ -19,161 +19,189 @@ use IO::File;
 use PerlBean::Attribute::Factory;
 
 my @attribute_class = (
-	{
-		attribute_name => 'b1',
-		type => 'BOOLEAN',
-	},
-	{
-		attribute_name => 'b2',
-		type => 'BOOLEAN',
-		default_value => 1,
-	},
-	{
-		attribute_name => 'b3',
-		type => 'BOOLEAN',
-		mandatory => 1,
-	},
-	{
-		attribute_name => 'b4',
-		type => 'BOOLEAN',
-		default_value => 1,
-		mandatory => 1,
-	},
+    {
+        attribute_name => 'b1',
+        type => 'BOOLEAN',
+    },
+    {
+        attribute_name => 'b2',
+        type => 'BOOLEAN',
+        default_value => 1,
+    },
+    {
+        attribute_name => 'b3',
+        type => 'BOOLEAN',
+        mandatory => 1,
+    },
+    {
+        attribute_name => 'b4',
+        type => 'BOOLEAN',
+        default_value => 1,
+        mandatory => 1,
+    },
 
-	{
-		attribute_name => 's1',
-		type => 'SINGLE',
-	},
-	{
-		attribute_name => 's2',
-		type => 'SINGLE',
-		allow_empty => 0,
-	},
-	{
-		attribute_name => 's3',
-		type => 'SINGLE',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-	},
-	{
-		attribute_name => 's4',
-		type => 'SINGLE',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-	},
-	{
-		attribute_name => 's5',
-		type => 'SINGLE',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-	},
-	{
-		attribute_name => 's6',
-		type => 'SINGLE',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-	},
+    {
+        attribute_name => 's1',
+        type => 'SINGLE',
+    },
+    {
+        attribute_name => 's2',
+        type => 'SINGLE',
+        allow_empty => 0,
+    },
+    {
+        attribute_name => 's3',
+        type => 'SINGLE',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+    },
+    {
+        attribute_name => 's4',
+        type => 'SINGLE',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+    },
+    {
+        attribute_name => 's5',
+        type => 'SINGLE',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+    },
+    {
+        attribute_name => 's6',
+        type => 'SINGLE',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+    },
 
-	{
-		attribute_name => 'm1',
-		type => 'MULTI',
-	},
-	{
-		attribute_name => 'm2',
-		type => 'MULTI',
-		allow_empty => 0,
-	},
-	{
-		attribute_name => 'm3',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-	},
-	{
-		attribute_name => 'm4',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-	},
-	{
-		attribute_name => 'm5',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-	},
-	{
-		attribute_name => 'm6',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-	},
-	{
-		attribute_name => 'm7',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-		ordered => 1,
-	},
-	{
-		attribute_name => 'm8',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-		unique => 1,
-	},
-	{
-		attribute_name => 'm9',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-		ordered => 1,
-		unique => 1,
-	},
-	{
-		attribute_name => 'm10',
-		type => 'MULTI',
-		allow_empty => 0,
-		allow_isa => [qw (isaFoo isaBar)],
-		allow_ref => [qw (refFoo refBar)],
-		allow_rx => [qw (^\d+$ ^\S+$)],
-		allow_value => [qw (valueFoo valueBar)],
-		mandatory => 1,
-		associative => 1,
-		unique => 1,
-	},
+    {
+        attribute_name => 'm1',
+        type => 'MULTI',
+    },
+    {
+        attribute_name => 'm2',
+        type => 'MULTI',
+        allow_empty => 0,
+    },
+    {
+        attribute_name => 'm3',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+    },
+    {
+        attribute_name => 'm4',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+    },
+    {
+        attribute_name => 'm5',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+    },
+    {
+        attribute_name => 'm6',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+    },
+    {
+        attribute_name => 'm7',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+        ordered => 1,
+    },
+    {
+        attribute_name => 'm8',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+        unique => 1,
+    },
+    {
+        attribute_name => 'm9',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+        ordered => 1,
+        unique => 1,
+    },
+    {
+        attribute_name => 'm10',
+        type => 'MULTI',
+        allow_empty => 0,
+        allow_isa => [qw (isaFoo isaBar)],
+        allow_ref => [qw (refFoo refBar)],
+        allow_rx => [qw (^\d+$ ^\S+$)],
+        allow_value => [qw (valueFoo valueBar)],
+        mandatory => 1,
+        associative => 1,
+        unique => 1,
+    },
+);
+my @constr_opt = (
+    {
+        method_name => 'new_by_foo',
+        parameter_description => 'FOO',
+        description => <<EOF,
+Constructs a new object using foo. C<FOO> must be a C<FOO> reference. On error an exception C<Error::Simple> is thrown.
+EOF
+    },
+);
+my @meth_opt = (
+    {
+        method_name => 'do_foo',
+        parameter_description => 'BAR',
+        description => <<EOF,
+Does foo. C<BAR> must be a C<BAR> reference. On error an exception C<Error::Simple> is thrown.
+EOF
+    },
 );
 
 my $bean = PerlBean->new ({
-	package => 'tmp::TestPkg'
+    package => 'tmp::TestPkg'
 });
 my $factory = PerlBean::Attribute::Factory->new ();
 
 foreach my $attribute_class (@attribute_class) {
-	$attribute_class->{perl_bean} = $bean;
-	my $attribute = $factory->createAttribute ($attribute_class);
-	$attribute->{short_description} = $attribute->{attribute_name};
-	$bean->addAttribute ($attribute);
+    $attribute_class->{perl_bean} = $bean;
+    my $attribute = $factory->create_attribute ($attribute_class);
+    $attribute->{short_description} = $attribute->{attribute_name};
+    $bean->add_attribute ($attribute);
+}
+foreach my $meth_opt (@meth_opt) {
+    require PerlBean::Method;
+    my $meth = PerlBean::Method->new ($meth_opt);
+    $bean->add_method ($meth);
+}
+foreach my $meth_opt (@constr_opt) {
+    require PerlBean::Method::Constructor;
+    my $meth = PerlBean::Method::Constructor->new ($meth_opt);
+    $bean->add_method ($meth);
 }
 
 my $fh = IO::File->new ('> tmp/TestPkg.pm');
@@ -185,7 +213,7 @@ autosplit('tmp/TestPkg.pm', 'auto', 0, 1, 1) ;
 
 system ("$^X -c tmp/TestPkg.pm > /dev/null 2>&1");
 if ($?>>8) {
-	ok (0);
+    ok (0);
 } else {
-	ok (1);
+    ok (1);
 }

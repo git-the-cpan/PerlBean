@@ -1,46 +1,50 @@
-# read synopsis
-use IO::File;
-my $fh = IO::File->new ('< syn-PerlBean_Attribute_Multi_Unique_Ordered.pl');
-$fh = IO::File->new ('< gen/syn-PerlBean_Attribute_Multi_Unique_Ordered.pl') if (! defined ($fh));
-my $syn = '';
-my $prev_line = $fh->getline ();
-while (my $line = $fh->getline ()) {
-	$syn .= ' ' . $prev_line;
-	$prev_line = $line;
-}
-chomp ($syn);
 
-$desc = <<EOF;
+push(@::bean_desc, {
+    bean_opt => {
+        abstract => 'Unique, ordered MULTI bean attribute information',
+        package => 'PerlBean::Attribute::Multi::Unique::Ordered',
+        base => [ qw(PerlBean::Attribute::Multi)],
+        description => <<EOF,
 C<PerlBean::Attribute::Multi::Unique::Ordered> contains unique ordered MULTI bean attribute information. It is a subclass of C<PerlBean::Attribute::Multi>. The code generation and documentation methods from C<PerlBean::Attribute> are implemented.`
 EOF
-chomp ($desc);
+        short_description => 'contains unique ordered MULTI bean attribute information',
+        synopsis => &get_syn(),
+    },
+    attr_opt => [
+    ],
+    meth_opt => [
+        {
+            method_name => 'write_doc_methods',
+            description => <<EOF,
+__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+EOF
+        },
+        {
+            method_name => 'write_methods',
+            description => <<EOF,
+__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+EOF
+        },
+        {
+            method_name => 'write_doc_inherit_methods',
+            description => <<EOF,
+__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+EOF
+        },
+    ],
+} );
 
-push (@::bean_desc, {
-		bean_opt => {
-			abstract => 'Unique, ordered MULTI bean attribute information',
-			package => 'PerlBean::Attribute::Multi::Unique::Ordered',
-			base => [ qw (PerlBean::Attribute::Multi)],
-			description => $desc,
-			short_description => 'contains unique ordered MULTI bean attribute information',
-			synopsis => $syn,
-		},
-		attr_opt => [
-		],
-		meth_opt => [
-			{
-				method_name => 'writeDocMethods',
-				description => '__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
-			},
-			{
-				method_name => 'writeMethods',
-				description => '__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
-			},
-			{
-				method_name => 'writeDocInheritMethods',
-				description => '__SUPER_POD__ Access methods are B<set...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.',
-			},
-		],
-	},
-);
+sub get_syn {
+    use IO::File;
+    my $fh = IO::File->new('< syn-PerlBean_Attribute_Multi_Unique_Ordered.pl');
+    $fh = IO::File->new('< gen/syn-PerlBean_Attribute_Multi_Unique_Ordered.pl') if (! defined($fh));
+    my $syn = '';
+    my $prev_line = $fh->getline ();
+    while (my $line = $fh->getline ()) {
+        $syn .= ' ' . $prev_line;
+        $prev_line = $line;
+    }
+    return($syn);
+}
 
 1;

@@ -1,10 +1,11 @@
-PerlBean $Revision: 0.5 $
+PerlBean $Revision: 0.6 $
 =============================
 
 QUICK INSTALL/USAGE
 
 1) Install the module as usual
-2) Run the samples in the tutorial directory
+2) Read the tutorial (it's fully reviewd in version 0.6)
+3) Run the samples in the tutorial directory
 
 SHORT DESCRIPTION
 

@@ -14,11 +14,13 @@ use PerlBean::Attribute::Factory;
 use PerlBean::Attribute::Multi::Ordered;
 use PerlBean::Attribute::Multi;
 use PerlBean::Attribute::Multi::Unique::Associative;
+use PerlBean::Attribute::Multi::Unique::Associative::MethodKey;
 use PerlBean::Attribute::Multi::Unique::Ordered;
 use PerlBean::Attribute::Multi::Unique;
 use PerlBean::Attribute::Single;
 use PerlBean::Collection;
 use PerlBean::Method;
+use PerlBean::Style;
 
 ok(1); # If we made it this far, we're ok.
 

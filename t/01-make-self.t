@@ -20,6 +20,11 @@ use PerlBean;
 use PerlBean::Collection;
 use PerlBean::Method;
 use PerlBean::Attribute::Factory;
+use PerlBean::Style;
+
+my $style = PerlBean::Style->instance ();
+#$style->set_str_pre_block_open_curl ("\n__IND_BLOCK__# xxx\n__IND_BLOCK__");
+#$style->set_str_post_block_close_curl ("\n__IND_BLOCK__# xxx\n__IND_BLOCK__");
 
 # Bean description array
 @::bean_desc = ();
@@ -58,14 +63,14 @@ foreach my $bean_desc (@::bean_desc) {
 	$bean_desc->{bean_opt}{collection} = $collection;
 	my $bean = PerlBean->new ($bean_desc->{bean_opt});
 	foreach my $attr_opt (@{$bean_desc->{attr_opt}}) {
-		my $attr = $factory->createAttribute ($attr_opt);
-		$bean->addAttribute ($attr);
+		my $attr = $factory->create_attribute ($attr_opt);
+		$bean->add_attribute ($attr);
 	}
 	foreach my $meth_opt (@{$bean_desc->{meth_opt}}) {
 		my $meth = PerlBean::Method->new ($meth_opt);
-		$bean->addMethod ($meth);
+		$bean->add_method ($meth);
 	}
-	$collection->addPerlBean ($bean);
+	$collection->add_perl_bean ($bean);
 }
 
 # Revove the old tmp directory

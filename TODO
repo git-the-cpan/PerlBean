@@ -1,5 +1,10 @@
-$Revision: 0.5 $
-- Documentation review
-- Tutorial for PerlBean::Collection
+$Revision: 0.6 $
+- Documentation review (again and again and again)
 - Attribute that isn't changable after first set call to it
 - Allowed value 'undef'
+- "singleton" attribute for PerlBean to generate singleton classes
+- PerlBean::Use to add use statements
+- PerlBean::Export::Tag and PerlBean::Export::Symbol to implement the exporting
+  decently.
+- Get rid of the "exported" attribute
+- Add "autoloaded" attribute to implement autoloading decently
