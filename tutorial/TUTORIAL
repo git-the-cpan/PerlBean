@@ -1,0 +1,418 @@
+Vincenzo Zocca
+Thu Nov 28 10:36:12 CET 2002
+
+
+
+INTRODUCTION
+
+Most OO designs contain objects with a bean(*) structure with -optionally-
+additional logic/structure. Although the bean capabilities in an object
+are -or should be- trivial, programming them takes a non proportional amount
+of time.
+
+The modules in the PerlBean hierarchy generate code for the bean
+capabilities in an object. A complete package of code is generated which can
+afterward be enhanced at will.
+
+(*) The term "bean" is borrowed from Java. In this context it is important to
+    know that beans are objects with attributes (or properties) which are
+    accessible through methods "get", "set" etc...
+
+
+
+PERL BEAN CLASS
+
+PerlBean is the top level object. It contains the package description
+and the descriptions of the package attributes.
+
+Example 1:
+  use strict;
+  use PerlBean;
+  my $bean = PerlBean->new ({
+    package => 'My::Package',
+    short_description => 'my test package',
+  });
+  use IO::File;
+  my $fh = IO::File->new ("> $0.out");
+  $bean->write ($fh);
+
+Results in Perl module file 'example.1.out' which looks like:
+  package My::Package;
+  [...]
+  =head1 NAME
+  
+  My::Package - my test package
+  [...]
+  =cut
+  [...]
+  sub new {
+  [...]
+  sub _initialize {
+  [...]
+
+NOTE: [...] means code is left out
+The file is syntactically correct, contains package declaration, the
+initialization method, the constructor and general pod documentation. But it
+does not contain attribute logic and structure (yet). See the next sections
+for this.
+
+
+
+BOOLEAN
+
+Boolean attributes can be set using a set... method and checked using an is...
+method. The following example adds a boolean attribute "easy" to the previous
+code.
+
+Example 2, diff example.1 example.2:
+7a8,14
+>   use PerlBean::Attribute::Factory;
+>   my $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'easy',
+>       type => 'BOOLEAN',
+>       short_description => 'the generation of this code is easy',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.2.out' which looks like:
+  [...]
+  =item setEasy (VALUE)
+  
+  State that the generation of this code is easy. C<VALUE> is the value. On
+  error an exception C<Error::Simple> is thrown.
+
+  =item isEasy ()
+  
+  Returns whether the generation of this code is easy or not.
+  [...]
+  =cut
+  [...]
+  # easy, BOOLEAN
+  exists ($opt->{easy}) && $self->setEasy ($opt->{easy});
+  [...]
+  sub setEasy {
+  [...]
+  sub isEasy {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setEasy ()" method, the "isEasy ()" method and pod documentation
+for "setEasy ()" and "isEasy ()" methods.
+
+
+
+SINGLE
+
+Attributes that have one value are called "single" in this package. They can
+contain any scalar -number/string/reference. They can be set using a set...
+method and checked using a get... method. The following example adds a single
+attribute "name" to the previous code.
+
+Example 3, diff example.2 example.3:
+14a15,20
+>   $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'name',
+>       type => 'SINGLE',
+>       short_description => 'the object name',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.3.out' which looks like:
+  [...]
+  =item setName (VALUE)
+  
+  Set the object name. C<VALUE> is the value. On error an exception
+  C<Error::Simple> is thrown.
+  
+  =item getName ()
+  
+  Returns the object name.
+  [...]
+  =cut
+  [...]
+  # easy, BOOLEAN
+  exists ($opt->{name}) && $self->setName ($opt->{name});
+  [...]
+  sub setName {
+  [...]
+  sub getName {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setName ()" method, the "getName ()" method and pod documentation
+for "setName ()" and "setName ()" methods.
+
+
+
+CONSTRAINTS
+
+Programming constraints into the class is trivial, tedious and its repetitive
+nature makes the programming prone to errors that are discovered late in the
+process.
+
+To make an attribute mandatory for the constructor you set the option
+'mandatory' to 1. To disallow an attribute to be set empty through methods,
+set the 'allow_empty' option to 0.
+
+Example 4, diff example.3 example.4:
+16a17,18
+>       allow_empty => 0,
+>       mandatory => 1,
+
+Results in Perl module file 'example.4.out' which differs in from
+'example.3.out':
+- The attribute clauses in the "_initialize ()" method check for the actual
+  specification of the attribute during the construction.
+- The documentation for the constructor is enhanced to contain the constraints.
+- Try running 'diff example.3.out example.4.out' yourself.
+
+The following "plain" constraints are available:
+- allow_empty =>     Allow/disallow an attribute to be set empty through methods.
+                     Boolean, defaults to 1.
+- default_value =>   Default value set by constructor if no value specified.
+                     Boolean expression for boolean attributes, scalar for
+                     single attributes and ARRAY reference for multi attributes.
+- exception_class => Exception class to throw in exceptional cases.
+                     Single, defaults to Error::Simple
+- mandatory =>       Mandatory attribute for the constructor.
+                     Boolean, defaults to 0.
+
+Value constraint cause the values to be examined before being allowed in the
+attribute. 
+- allow_isa =>   Allow only values that are (sub)-classes of the specified
+                 classes.
+- allow_ref =>   Allow only values that are references of the specified classes.
+- allow_rx =>    Allow only values that match the specified regular expressions.
+- allow_value => Allow only specified values.
+
+Example 5, diff example.4 example.5:
+18a19
+>       allow_value => [qw (foo bar)],
+
+Results in Perl module file 'example.5.out' which differs in from
+'example.4.out':
+- The value for attribute "name" may be "bar" or "foo"
+
+
+
+MULTI
+
+Multi attributes have multiple values.
+
+For example, My::Package objects must have one name -see previous examples-
+but may have 0 or more aliases. The list of aliases may or may not contain
+the same value more times (incite). Also, the values must or must not remain
+ordered (order).
+
+The following sections describe variants of MULTI.
+
+
+
+MULTI ordered
+
+A "multi ordered" values attribute contains a plain list with attribute values.
+The methods to access these are:
+- set... =>    To absolutely set the list of values for the attribute.
+- setIdx... => To absolutely set  single value on the indexed position.
+- setNum... => To absolutely set  single value on the numbered position.
+- get... =>    To get the full list of values for the attribute without changing
+               the list.
+- push..., pop..., shift..., unshift... => To respectively "push", "pop",
+               "shift" and "unshift" items from/on the list of values for the
+               attribute. These actually are regular ARRAY function names in
+               Perl. NOTE: the "splice" function is deliberately not implemented
+               for ordered attributes as it is intended to mess with the order
+               of a list.
+- exists... => To check if values occur in the list of values for the attribute.
+               This method name is borrowed from the Perl HASH function names.
+               NOTE: the "delete" function is deliberately not implemented for
+               ordered attributes again because it may/will hurt the ordered
+               quality.
+
+Example 6, diff example.5 example.6:
+23a24,29
+>   $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'alias',
+>       type => 'MULTI',
+>       short_description => 'object aliases',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.6.out' which looks like:
+  [...]
+  # alias, MULTI
+  [...]
+  sub setAlias {
+  [...]
+  sub pushAlias {
+  [...]
+  sub popAlias {
+  [...]
+  sub shiftAlias {
+  [...]
+  sub unshiftAlias {
+  [...]
+  sub existsAlias {
+  [...]
+  sub getAlias {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setAlias ()", "pushAlias (), "popAlias ()", "shiftAlias ()",
+"unshiftAlias ()", "existsAlias ()" and "getAlias ()" methods and their pod
+documentation.
+
+
+
+MULTI unique
+
+A "multi unique" values attribute contains hash list of attribute values. Hash
+means that the values are NOT ordered. The methods allow for values to be added,
+deleted and tested for existence:
+- set... =>    To absolutely set the list of values for the attribute.
+- add... =>    Add values to the list of values for the attribute.
+- delete... => Delete values from the list of values for the attribute.
+- exists... => Test existence of values in the list of values for the attribute.
+- values... => Get the values from the list of values for the attribute.
+
+Example 7, diff example.6 example.7:
+29a30,36
+>   $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'phone_number',
+>       type => 'MULTI',
+>       unique => 1,
+>       short_description => 'phone numbers',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.7.out' which looks like:
+  [...]
+  # phone_number, MULTI
+  [...]
+  sub setPhoneNumber {
+  [...]
+  sub addPhoneNumber {
+  [...]
+  sub deletePhoneNumber {
+  [...]
+  sub existsPhoneNumber {
+  [...]
+  sub valuesPhoneNumber {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setPhoneNumber ()", "addPhoneNumber (), "deletePhoneNumber ()",
+"existsPhoneNumber ()", and "valuesPhoneNumber ()" methods and their pod
+documentation.
+
+
+
+MULTI unique, associative
+
+A "multi unique, associative" values attribute contains hash list of attribute
+keys/values. Hash means that the values are related to keys and that the keys
+are NOT ordered. The methods allow for keys and values to be added and deleted.
+Keys can also be tested for existence:
+- set... =>    To absolutely set the list of keys/values for the attribute.
+- add... =>    Add keys/values to the list of keys/values for the attribute.
+- delete... => Delete keys/values from the list of keys/values for the
+               attribute.
+- exists... => Test existence of keys in the list of keys/values for the
+               attribute.
+- keys... =>   Get the keys from the list of keys/values for the attribute.
+- values... => Get the values from the list of keys/values for the attribute.
+
+Example 8, diff example.7 example.8:
+36a37,44
+>   $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'phone_number_dictionary',
+>       type => 'MULTI',
+>       associative => 1,
+>       unique => 1,
+>       short_description => 'buddies by phone number',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.7.out' which looks like:
+  [...]
+  # phone_number_dictionary, MULTI
+  [...]
+  sub setPhoneNumberDictionary {
+  [...]
+  sub addPhoneNumberDictionary {
+  [...]
+  sub deletePhoneNumberDictionary {
+  [...]
+  sub existsPhoneNumberDictionary {
+  [...]
+  sub keysPhoneNumberDictionary {
+  [...]
+  sub valuesPhoneNumberDictionary {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setPhoneNumberDictionary ()", "addPhoneNumberDictionary (),
+"deletePhoneNumberDictionary ()", "existsPhoneNumberDictionary ()",
+"keysPhoneNumberDictionary ()" and "valuesPhoneNumberDictionary ()" methods and their pod documentation.
+NOTE: The interfaces of "multi unique" and "multi unique, associative" objects
+differs. See the generated code and documentation for details.
+
+
+
+MULTI unique, ordered
+
+A "multi unique, ordered" values attribute contains array and hash list of
+attribute values. The values are ordered and are allowed to occur only once.
+The methods to access these are:
+- set... =>    To absolutely set the list of values for the attribute.
+- get... =>    To get the full list of values for the attribute without changing
+               the list.
+- push..., pop..., shift..., unshift... => To respectively "push", "pop",
+               "shift" and "unshift" items from/on the list of values for the
+               attribute. These actually are regular ARRAY function names in
+               Perl. NOTE: the "splice" function is deliberately not implemented
+               for ordered attributes as it is intended to mess with the order
+               of a list.
+- exists... => To check if values occur in the list of values for the attribute.
+               This method name is borrowed from the Perl HASH function names.
+               NOTE: the "delete" function is deliberately not implemented for
+               ordered attributes again because it may/will hurt the ordered
+               quality.
+
+Example 9, diff example.8 example.9:
+44a45,52
+>   $attr = PerlBean::Attribute::Factory->attribute ({
+>       attribute_name => 'travel_plan',
+>       type => 'MULTI',
+>       unique => 1,
+>       ordered => 1,
+>       short_description => 'traveling salesman plan',
+>   });
+>   $bean->addAttribute ($attr->getAttributeName (), $attr);
+
+Results in Perl module file 'example.6.out' which looks like:
+  [...]
+  # travel_plan, MULTI
+  [...]
+  sub setTravelPlan {
+  [...]
+  sub pushTravelPlan {
+  [...]
+  sub popTravelPlan {
+  [...]
+  sub shiftTravelPlan {
+  [...]
+  sub unshiftTravelPlan {
+  [...]
+  sub existsTravelPlan {
+  [...]
+  sub getTravelPlan {
+  [...]
+
+Differences to the generated code are the clauses in the "_initialize ()"
+method, the "setTravelPlan ()", "pushTravelPlan (), "popTravelPlan ()",
+"shiftTravelPlan ()", "unshiftTravelPlan ()", "existsTravelPlan ()" and
+"getTravelPlan ()" methods and their pod documentation.
+
+
+
