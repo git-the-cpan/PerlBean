@@ -6,7 +6,7 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 

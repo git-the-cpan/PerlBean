@@ -8,7 +8,7 @@ use AutoLoader qw (AUTOLOAD);
 
 use base qw (PerlBean::Attribute::Single);
 
-our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 

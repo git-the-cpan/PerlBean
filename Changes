@@ -1,6 +1,12 @@
 Revision history for Perl extension PerlBean.
 
-0.3.0.1 Sun Jan  5 22:36:25 CET 2003
+0.4 Sat Jan 11 05:29:29 CET 2003
+	- Fixed bug in PerlBean::Attribute: valuesBean should have been
+	  valuesPerlBean
+	- Updated MANIFEST
+	- Fixed bug in Changes 0.3.0.1 should have been 0.3
+
+0.3 Sun Jan  5 22:36:25 CET 2003
 	- Added PerlBean::Method
 	- Added PerlBean::Attribute::Multi::Unique::Associative::MethodKey
 	- Regenerated and checked all PerlBean modules

@@ -6,7 +6,7 @@ use warnings;
 use Error qw (:try);
 use AutoLoader qw (AUTOLOAD);
 
-our ( $VERSION ) = '$Revision: 0.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+our ( $VERSION ) = '$Revision: 0.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 our %ALLOW_ISA = (
 	'perl_bean' => [ 'PerlBean' ],
@@ -321,7 +321,7 @@ sub getOverloadedAttribute {
 	# Look for the attribute in super classes
 	foreach my $super_pkg ($self->getPerlBean ()->getBase ()) {
 		# Get the super class bean
-		my $super_bean = ($self->getPerlBean ()->getCollection ()->valuesBean ($super_pkg))[0];
+		my $super_bean = ($self->getPerlBean ()->getCollection ()->valuesPerlBean ($super_pkg))[0];
 
 		# If the super class bean has no bean in the collection then no attribute is found
 		defined ($super_bean) || return (undef);
