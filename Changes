@@ -1,5 +1,9 @@
 Revision history for Perl extension PerlBean.
 
+0.8 Sat Mar 29 18:08:12 CET 2003
+ - Fixed bug with $VERSION variable in modules and with $VERSION symbol
+   generation.
+
 0.7 Mon Mar 24 20:59:17 CET 2003
  - Added PerlBean::Symbol
  - Added PerlBean::Dependency::Import

@@ -36,7 +36,7 @@ our %DEFAULT_VALUE = (
 );
 
 # Package version
-our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 

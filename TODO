@@ -1,4 +1,4 @@
-$Revision: 0.7 $
+$Revision: 0.8 $
 - Documentation review (again and again and again)
 - Attribute that isn't changable after first set call to it
 - Allowed value 'undef'

@@ -1,4 +1,4 @@
-# $Revision: 0.7 $
+# $Revision: 0.8 $
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.

@@ -58,7 +58,7 @@ our %DEFAULT_VALUE = (
 );
 
 # Package version
-our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
+our ($VERSION) = '$Revision: 0.8 $' =~ /\$Revision:\s+([^\s]+)/;
 
 # Month names array
 our @MON = qw(
@@ -1936,7 +1936,7 @@ sub finalize_version {
         # make the version assignement
         my $va = '\'$';
         $va .= 'Revision: 0.0.0.0';
-        $va .= "\$'${AO}=~${AO}/\\\$";
+        $va .= " \$'${AO}=~${AO}/\\\$";
         $va .= 'Revision:\\s+([^\\s]+)/;';
         $va .= "\n";
 
