@@ -21,6 +21,7 @@ use PerlBean::Attribute::Single;
 use PerlBean::Collection;
 use PerlBean::Method;
 use PerlBean::Style;
+my $s = PerlBean::Style->instance();
 
 ok(1); # If we made it this far, we're ok.
 

@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'BOOLEAN bean attribute information',
         package => 'PerlBean::Attribute::Boolean',
+        use_perl_version => 5.005,
         base => [qw(PerlBean::Attribute)],
         description => <<EOF,
 C<PerlBean::Attribute::Boolean> contains BOOLEAN bean attribute information. It is a subclass of C<PerlBean::Attribute>. The code generation and documentation methods are implemented.
@@ -40,6 +41,21 @@ EOF
         },
         {
             method_name => 'write_doc_init',
+        },
+    ],
+    sym_opt => [
+        {
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
+EOF
+            assignment => "'sub';\n",
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

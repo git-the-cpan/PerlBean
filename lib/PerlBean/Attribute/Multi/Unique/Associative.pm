@@ -1,17 +1,18 @@
 package PerlBean::Attribute::Multi::Unique::Associative;
 
 use 5.005;
+use base qw( PerlBean::Attribute::Multi );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-use base qw(PerlBean::Attribute::Multi);
-
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
-
+# Variable to not confuse AutoLoader
 our $SUB = 'sub';
+
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -63,6 +64,10 @@ Passed to L<set_attribute_name()>. Mandatory option.
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
+
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
 
 =item B<C<exception_class>>
 
@@ -134,25 +139,25 @@ This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_pack
 
 This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_allow_isa(FILEHANDLE)
+=item write_allow_isa()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_ISA> line string for the attribute.
 
-=item write_allow_ref(FILEHANDLE)
+=item write_allow_ref()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_REF> line string for the attribute.
 
-=item write_allow_rx(FILEHANDLE)
+=item write_allow_rx()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_RX> line string for the attribute.
 
-=item write_allow_value(FILEHANDLE)
+=item write_allow_value()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_VALUE> line string for the attribute.
 
-=item write_default_value(FILEHANDLE)
+=item write_default_value()
 
-This method is inherited from package C<'PerlBean::Attribute::Multi'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Multi'>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =item write_doc_clauses(FILEHANDLE)
 
@@ -191,6 +196,10 @@ set_attribute_name(), get_attribute_name()
 =item To access attribute named B<C<default_value>>:
 
 set_default_value(), get_default_value()
+
+=item To access attribute named B<C<documented>>:
+
+set_documented(), is_documented()
 
 =item To access attribute named B<C<exception_class>>:
 
@@ -253,9 +262,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -317,6 +333,8 @@ EOF
 sub write_doc_methods {
     my $self = shift;
     my $fh = shift;
+
+    $self->is_documented() || return;
 
     $self->write_set_doc($fh);
     $self->write_add_doc($fh);

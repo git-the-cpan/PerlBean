@@ -10,9 +10,18 @@ Sun Feb 16 20:29:26 CET 2003
 
 =item Update
 
-Sun Feb 16 20:29:26 CET 2003
+Mon Mar 24 20:59:17 CET 2003
 
 =back
+
+=head1 0 USAGE NOTE
+
+Although PerlBean produces decent code (decent enough for the author that is),
+PerlBean is still under development.
+
+The code generation has impoved significantly since the first versions of
+PerlBean -which have been removed from CPAN- but still I expect more
+impovements. See the TODO list.
 
 =head1 1 INTRODUCTION
 
@@ -122,6 +131,7 @@ The first C<Shape> C<PerlBean> is created and added to the collection. At creati
      package => 'Shape',
      short_description => 'geometrical shape package',
      abstract => 'geometrical shape package',
+     autoloaded => 0,
  } );
  $coll->add_perl_bean( $shape );
 
@@ -149,6 +159,7 @@ Now the C<Circle> C<PerlBean> is created and added to the collection. The creati
      base => [ qw( Shape ) ],
      short_description => 'circle shape',
      abstract => 'circle shape',
+     autoloaded => 0,
  } );
  $coll->add_perl_bean( $circle );
 
@@ -188,6 +199,7 @@ This is much like 2.2.5 - 2.2.7 but then for C<Square>.
      base => [ qw( Shape ) ],
      short_description => 'square shape',
      abstract => 'square shape',
+     autoloaded => 0,
  } );
  $coll->add_perl_bean( $square );
 
@@ -220,6 +232,7 @@ The C<Rectangle> PerlBean which is a subclass of C<Square>.
      base => [ qw( Square ) ],
      short_description => 'rectangle shape',
      abstract => 'rectangle shape',
+     autoloaded => 0,
  } );
  $coll->add_perl_bean( $rectangle );
 
@@ -260,12 +273,6 @@ The code is generated in directory C<example.1>
 
  # Write the collection
  $coll->write($dir);
-
- # AutoSplit (usually this is done through Makefile.PL)
- use AutoSplit;
- foreach my $file ( <$dir/*pm> ) {
-     autosplit( $file, "$dir/auto", 0, 1);
- }
 
 =head3 2.2.11 Documentation check
 
@@ -427,7 +434,31 @@ C<set_indent()> allows to set the string used for ONE indentation.
 
 Check out the code and see for yourself.
 
-=head1 7 GET INVOLVED
+=head1 7 SYMBOLS
+
+The C<PerlBean::Symbol> class allows for symbols to be declared that are global
+to the package.
+
+Exporting of the symbols is also handeled by C<PerlBean::Symbol>.
+
+The tag description for exporting is handeled by
+C<PerlBean::Described::ExportTag>.
+
+=head1 8 DEPENDENCIES
+
+Code dependencies (e.g. I<import, require and use>) can be specified through
+packages C<PerlBean::Dependency::Import>, C<PerlBean::Dependency::Require> and
+C<PerlBean::Dependency::Use>.
+
+The dependency clases are listed at the top of the package.
+
+=head1 9 AUTOLOADING
+
+By default C<PerlBean> generates autoloaded code. You can switch the
+C<autoloaded> attribute off in C<PerlBean> objects to generated plain Perl
+code. See also the examples.
+
+=head1 10 GET INVOLVED
 
 B<Your comments are valuable!>
 

@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'MULTI bean attribute abstraction',
         package => 'PerlBean::Attribute::Multi',
+        use_perl_version => 5.005,
         base => [ qw(PerlBean::Attribute::Single)],
         description => <<EOF,
 C<PerlBean::Attribute::Multi> is a subclass of C<PerlBean::Attribute> and it's only function is to group the MULTI attribute classes.
@@ -34,6 +35,14 @@ EOF
         },
         {
             method_name => 'write_doc_init',
+        },
+    ],
+    sym_opt => [
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

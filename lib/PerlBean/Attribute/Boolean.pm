@@ -1,17 +1,18 @@
 package PerlBean::Attribute::Boolean;
 
 use 5.005;
+use base qw( PerlBean::Attribute );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-use base qw(PerlBean::Attribute);
-
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
-
+# Variable to not confuse AutoLoader
 our $SUB = 'sub';
+
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -64,6 +65,10 @@ Passed to L<set_attribute_name()>. Mandatory option.
 
 Passed to L<set_default_value()>.
 
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
+
 =item B<C<exception_class>>
 
 Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
@@ -108,9 +113,9 @@ This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_pack
 
 This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_default_value(FILEHANDLE)
+=item write_default_value()
 
-This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is an implementation from package C<'PerlBean::Attribute'>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =item write_doc_clauses(FILEHANDLE)
 
@@ -150,6 +155,10 @@ set_attribute_name(), get_attribute_name()
 
 set_default_value(), get_default_value()
 
+=item To access attribute named B<C<documented>>:
+
+set_documented(), is_documented()
+
 =item To access attribute named B<C<exception_class>>:
 
 set_exception_class(), get_exception_class()
@@ -185,9 +194,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -229,18 +245,13 @@ Boston, MA 02111-1307 USA
 
 sub write_default_value {
     my $self = shift;
-    my $fh = shift;
 
-    defined( $self->get_default_value() ) || return;
+    defined( $self->get_default_value() ) || return('');
 
     my $an = $self->esc_aq( $self->get_attribute_name() );
-    my $dv = '0';
-    if ( $self->get_default_value() ) {
-        $dv = 1;
-    }
-    $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}$dv,
-EOF
+    my $dv = $self->get_default_value() ? 1 : 0;
+
+    return( "${IND}$an${AO}=>${AO}$dv,\n" );
 }
 
 sub write_doc_inherit_methods {
@@ -266,6 +277,8 @@ sub write_doc_init {
     my $self = shift;
     my $fh = shift;
 
+    $self->is_documented() || return;
+
     my $an = $self->get_attribute_name();
     my $mb = $self->get_method_base();
     my $mand = $self->is_mandatory() ? ' Mandatory option.' : '';
@@ -285,6 +298,8 @@ EOF
 sub write_doc_methods {
     my $self = shift;
     my $fh = shift;
+
+    $self->is_documented() || return;
 
     $self->write_doc_set_method($fh);
     $self->write_doc_is_method($fh);

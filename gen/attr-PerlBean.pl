@@ -1,9 +1,12 @@
 use strict;
 
+use PerlBean::Style qw(:codegen);
+
 push(@::bean_desc, {
     bean_opt => {
         abstract => 'Code generation for bean like Perl modules',
         package => 'PerlBean',
+        use_perl_version => 5.005,
         description => <<EOF,
 C<PerlBean> generates bean like Perl packages. That is, it generates code with for a module with attributes(properties) and the attribute's access methods (B<set>, B<push>, B<pop>, B<shift>, B<unshift>, B<has>, B<get> or B<is>, depending on the type of attribute). The attribute base types are B<BOOLEAN>, B<SINGLE> and B<MULTI>. B<BOOLEAN> attributes may be set to C<0> or C<1>. B<SINGLE> attributes may contain any scalar. B<MULTI> attributes contain a set of values(ordered/not ordered and unique/not unique).
 
@@ -33,7 +36,7 @@ EOF
             method_key => 1,
             id_method => 'get_attribute_name',
             short_description => 'the list of \'PerlBean::Attribute\' objects',
-            allow_isa => [qw(PerlBean::Attribute)],
+            allow_isa => [ qw( PerlBean::Attribute ) ],
         },
         {
             attribute_name => 'base',
@@ -59,9 +62,36 @@ EOF
             short_description => 'class to throw when exception occurs',
         },
         {
-            attribute_name => 'exported',
+            attribute_name => 'autoloaded',
             type => 'BOOLEAN',
-            short_description => 'the PerlBean must contain code for exporter',
+            short_description => 'the methods in the PerlBean are autoloaded',
+            default_value => 1,
+        },
+        {
+            attribute_name => 'dependency',
+            type => 'MULTI',
+            unique => 1,
+            associative => 1,
+            method_key => 1,
+            id_method => 'get_dependency_name',
+            short_description => 'the list of \'PerlBean::Dependency\' objects',
+            allow_isa => [ qw( PerlBean::Dependency ) ],
+            default_value => [ 'XXXX' ],
+        },
+        {
+            attribute_name => 'export_tag_description',
+            type => 'MULTI',
+            unique => 1,
+            associative => 1,
+            method_key => 1,
+            id_method => 'get_export_tag_name',
+            short_description => 'the list of \'PerlBean::Described::ExportTag\' objects',
+            allow_isa => [ qw( PerlBean::Described::ExportTag ) ],
+        },
+        {
+            attribute_name => 'singleton',
+            type => 'BOOLEAN',
+            short_description => 'the package is a singleton and an C<instance()> method is implemented',
             default_value => 0,
         },
         {
@@ -69,6 +99,16 @@ EOF
             type => 'SINGLE',
             allow_rx => [qw(.*)],
             short_description => 'the software license for the PerlBean',
+        },
+        {
+            attribute_name => 'symbol',
+            type => 'MULTI',
+            unique => 1,
+            associative => 1,
+            method_key => 1,
+            id_method => 'get_symbol_name',
+            short_description => 'the list of \'PerlBean::Symbol\' objects',
+            allow_isa => [qw(PerlBean::Symbol)],
         },
         {
             attribute_name => 'method',
@@ -87,6 +127,13 @@ EOF
             short_description => 'package name',
         },
         {
+            attribute_name => 'use_perl_version',
+            allow_empty => 0,
+            default_value => '$]',
+            allow_rx => [ qw( ^v?\d+\(\.[\d_]+\)* ) ],
+            short_description => 'the Perl version to use',
+        },
+        {
             attribute_name => 'short_description',
             short_description => 'the short PerlBean description',
             default_value => 'NO DESCRIPTION AVAILABLE',
@@ -97,6 +144,19 @@ EOF
             allow_rx => [qw(.*)],
             short_description => 'the synopsis for the PerlBean',
         },
+        {
+            attribute_name => '_has_exports_',
+            type => 'BOOLEAN',
+            documented => 0,
+            default_value => 0,
+        },
+        {
+            attribute_name => '_export_tag_',
+            type => 'MULTI',
+            unique => 1,
+            associative => 1,
+            documented => 0,
+        },
     ],
     meth_opt => [
         {
@@ -106,40 +166,65 @@ EOF
 Write the Perl class code to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 EOF
         },
+    ],
+    sym_opt => [
         {
-            method_name => 'write_allow_isa_hash',
-            parameter_description => 'FILEHANDLE',
-            description => <<EOF,
-Write the C<\%ALLOW_ISA> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+            symbol_name => '$END',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
 EOF
+            assignment => "'__END__';\n",
         },
         {
-            method_name => 'write_allow_ref_hash',
-            parameter_description => 'FILEHANDLE',
-            description => <<EOF,
-Write the C<\%ALLOW_REF> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
 EOF
+            assignment => "'sub';\n",
         },
         {
-            method_name => 'write_allow_rx_hash',
-            parameter_description => 'FILEHANDLE',
-            description => <<EOF,
-Write the C<\%ALLOW_RX> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+            symbol_name => '$PACKAGE',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
 EOF
+            assignment => "'package';\n",
         },
         {
-            method_name => 'write_allow_value_hash',
-            parameter_description => 'FILEHANDLE',
-            description => <<EOF,
-Write the C<\%ALLOW_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
+            symbol_name => '@MON',
+            comment => <<EOF,
+# Month names array
+EOF
+            assignment => <<EOF,
+qw(
+${IND}January
+${IND}February
+${IND}March
+${IND}April
+${IND}May
+${IND}June
+${IND}July
+${IND}August
+${IND}September
+${IND}October
+${IND}November
+${IND}December
+);
 EOF
         },
+    ],
+    use_opt => [
         {
-            method_name => 'write_default_value_hash',
-            parameter_description => 'FILEHANDLE',
-            description => <<EOF,
-Write the C<\%DEFAULT_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-EOF
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
+        },
+        {
+            dependency_name => 'PerlBean::Symbol',
+        },
+        {
+            dependency_name => 'PerlBean::Dependency::Require',
+        },
+        {
+            dependency_name => 'PerlBean::Dependency::Use',
         },
     ],
 } );

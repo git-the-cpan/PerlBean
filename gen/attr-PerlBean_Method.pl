@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'Abstract PerlBean method information',
         package => 'PerlBean::Method',
+        use_perl_version => 5.005,
         description => <<EOF,
 C<PerlBean::Method> class for bean method information.
 EOF
@@ -53,6 +54,12 @@ EOF
             type => 'SINGLE',
             short_description => 'the method description',
         },
+        {
+            attribute_name => 'documented',
+            type => 'BOOLEAN',
+            default_value => 1,
+            short_description => 'the method is documented',
+        },
     ],
     meth_opt => [
         {
@@ -80,6 +87,21 @@ EOF
             description => <<EOF,
 Returns the package name. The package name is obtained from the C<PerlBean> to which the C<PerlBean::Attribute> belongs. Or, if the C<PerlBean::Attribute> does not belong to a C<PerlBean>, C<main> is returned.
 EOF
+        },
+    ],
+    sym_opt => [
+        {
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
+EOF
+            assignment => "'sub';\n",
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

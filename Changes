@@ -1,5 +1,18 @@
 Revision history for Perl extension PerlBean.
 
+0.7 Mon Mar 24 20:59:17 CET 2003
+ - Added PerlBean::Symbol
+ - Added PerlBean::Dependency::Import
+ - Added PerlBean::Dependency::Require
+ - Added PerlBean::Dependency::Use
+ - Added PerlBean::Described::ExportTag
+ - Added use_perl_version in PerlBean
+ - Added singleton attribute in PerlBean
+ - Added documented attribute in PerlBean and PerlBean::Attribute
+ - Fixed style bug setIdx -> set_idx
+ - Fixed style bug setNum -> set_num
+ - Fixed style bug in PerlBean::Attribute::Multi::Ordered::write_push_doc()
+
 0.6 Sun Feb 16 20:29:26 CET 2003
  - MAJOR changes
  - Added PerlBean::Style (now complient to perlstyle)

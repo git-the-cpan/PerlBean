@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'Unique, associative MULTI bean attribute information',
         package => 'PerlBean::Attribute::Multi::Unique::Associative::MethodKey',
+        use_perl_version => 5.005,
         base => [ qw(PerlBean::Attribute::Multi)],
         description => <<EOF,
 C<PerlBean::Attribute::Multi::Unique::Associative::MethodKey> contains information on unique associative MULTI bean attribute that gets its key from an object method. It is a subclass of C<PerlBean::Attribute::Multi>. The code generation and documentation methods from C<PerlBean::Attribute> are implemented.
@@ -37,6 +38,21 @@ EOF
             description => <<EOF
 __SUPER_POD__ Access methods are B<set...>, B<add...>, B<delete...>, B<exists...>, B<keys...> and B<values...>.
 EOF
+        },
+    ],
+    sym_opt => [
+        {
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
+EOF
+            assignment => "'sub';\n",
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

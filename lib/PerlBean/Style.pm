@@ -1,36 +1,45 @@
 package PerlBean::Style;
 
 use 5.005;
+use base qw( Exporter );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
-
+use Error qw(:try);
 require Exporter;
 
-our @ISA = qw(Exporter);
+# Shortcut for singleton's get_str_after_comma()
+our $AC;
 
-our %EXPORT_TAGS = (
-    'all' => [
-        qw(),
-    ],
-    'codegen' => [
-        qw($AN2MBF $MOF $IND $AC $ACS $AO $BCP $BFP @PBCC @PBOC),
-    ],
-);
+# Shortcut for singleton's get_str_around_complex_subscripts()
+our $ACS;
 
-our @EXPORT_OK = (
-    @{ $EXPORT_TAGS{'all'} },
-    @{ $EXPORT_TAGS{'codegen'} },
-);
+# Shortcut for singleton's get_attribute_name_to_method_base_filter()
+our $AN2MBF;
 
-our @EXPORT = qw(
-);
+# Shortcut for singleton's get_str_around_operators()
+our $AO;
 
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
+# Shortcut for singleton's get_str_between_conditional_and_parenthesis()
+our $BCP;
 
+# Shortcut for singleton's get_str_between_function_and_parenthesis()
+our $BFP;
+
+# Shortcut for singleton's get_indent()
+our $IND;
+
+# Shortcut for singleton's get_method_operation_filter()
+our $MOF;
+
+# Singleton variable
+our $SINGLETON = undef;
+
+# Used by _value_is_allowed
 our %ALLOW_ISA = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_REF = (
     'attribute_name_to_method_base_filter' => {
         'CODE' => 1,
@@ -39,6 +48,8 @@ our %ALLOW_REF = (
         'CODE' => 1,
     },
 );
+
+# Used by _value_is_allowed
 our %ALLOW_RX = (
     'indent' => [ '.*' ],
     'str_after_comma' => [ '.*' ],
@@ -49,8 +60,12 @@ our %ALLOW_RX = (
     'str_post_block_close_curl' => [ '.*' ],
     'str_pre_block_open_curl' => [ '.*' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_VALUE = (
 );
+
+# Used by _value_is_allowed
 our %DEFAULT_VALUE = (
     'attribute_name_to_method_base_filter' => \&default_attribute_name_to_method_base_filter,
     'indent' => '    ',
@@ -64,10 +79,50 @@ our %DEFAULT_VALUE = (
     'str_pre_block_open_curl' => ' ',
 );
 
-our $SINGLETON = undef;
+# Exporter variable
+our %EXPORT_TAGS = (
+    'codegen' => [ qw(
+        $AC
+        $ACS
+        $AN2MBF
+        $AO
+        $BCP
+        $BFP
+        $IND
+        $MOF
+        @PBCC
+        @PBOC
+    ) ],
+);
 
-our ($AN2MBF, $MOF, $IND, $AC, $ACS, $AO, $BCP, $BFP, @PBCC, @PBOC);
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
+# Exporter variable
+our @EXPORT = qw(
+);
+
+# Exporter variable
+our @EXPORT_OK = qw(
+    $AC
+    $ACS
+    $AN2MBF
+    $AO
+    $BCP
+    $BFP
+    $IND
+    $MOF
+    @PBCC
+    @PBOC
+);
+
+# Shortcut for singleton's get_str_post_block_close_curl()
+our @PBCC;
+
+# Shortcut for singleton's get_str_pre_block_open_curl()
+our @PBOC;
+
+# Instanciate the singleton so the exported symbols are initialized
 &instance();
 
 1;
@@ -100,18 +155,6 @@ This tag contains variables usefull for the actual code generation. You should n
 
 =over
 
-=item $AN2MBF
-
-The value which would be obtained through the singleton object's C<get_attribute_name_to_method_base_filter()> method.
-
-=item $MOF
-
-The value which would be obtained through the singleton object's C<get_method_operation_filter()> method.
-
-=item $IND
-
-The value which would be obtained through the singleton object's C<get_indent()> method.
-
 =item $AC
 
 The value which would be obtained through the singleton object's C<get_str_after_comma()> method.
@@ -119,6 +162,10 @@ The value which would be obtained through the singleton object's C<get_str_after
 =item $ACS
 
 The value which would be obtained through the singleton object's C<get_str_around_complex_subscripts()> method.
+
+=item $AN2MBF
+
+The value which would be obtained through the singleton object's C<get_attribute_name_to_method_base_filter()> method.
 
 =item $AO
 
@@ -131,6 +178,14 @@ The value which would be obtained through the singleton object's C<get_str_betwe
 =item $BFP
 
 The value which would be obtained through the singleton object's C<get_str_between_function_and_parenthesis()> method.
+
+=item $IND
+
+The value which would be obtained through the singleton object's C<get_indent()> method.
+
+=item $MOF
+
+The value which would be obtained through the singleton object's C<get_method_operation_filter()> method.
 
 =item @PBCC
 
@@ -210,9 +265,9 @@ Class method. Default attribute name to method filter. C<ATTRIBUTE> is the attri
 
 Class method. Default method operation filter. C<OPERATION> is the operation name. This method plainly returns the C<OPERATION>.
 
-=item instance([OPT_HASH_REF])
+=item instance( [ CONSTR_OPT ] )
 
-Always returns the same C<PerlBean::Style> -singleton- object instance. The forst time it is called, parameter C<OPT_HASH_REF> -if specified- is passed to the constructor.
+Always returns the same C<PerlBean::Style> -singleton- object instance. The first time it is called, parameters C<CONSTR_OPT> -if specified- are passed to the constructor.
 
 =item set_attribute_name_to_method_base_filter(VALUE)
 
@@ -430,8 +485,15 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
-L<PerlBean::Method::Constructor>
+L<PerlBean::Method::Constructor>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -529,11 +591,28 @@ sub default_method_operation_filter {
 }
 
 sub instance {
+    # Allow calls like:
+    # - PerlBean::Style::instance()
+    # - PerlBean::Style->instance()
+    # - $variable->instance()
+    if ( ref($_[0]) && &UNIVERSAL::isa( $_[0], 'PerlBean::Style' ) ) {
+        shift;
+    }
+    elsif ( ! ref($_[0]) && $_[0] eq 'PerlBean::Style' ) {
+        shift;
+    }
+
     # If $SINGLETON is defined return it
     defined($SINGLETON) && return($SINGLETON);
 
+    # Create the object and set $SINGLETON
     $SINGLETON = PerlBean::Style->new();
+
+    # Initialize the object separately as the initialization might
+    # depend on $SINGLETON being set.
     $SINGLETON->_initialize(@_);
+
+    # Return $SINGLETON
     return($SINGLETON);
 }
 

@@ -21,6 +21,7 @@ my $shape = PerlBean->new ( {
     package => 'Shape',
     short_description => 'geometrical shape package',
     abstract => 'geometrical shape package',
+    autoloaded => 0,
 } );
 $coll->add_perl_bean( $shape );
 
@@ -41,6 +42,7 @@ my $circle = PerlBean->new ( {
     base => [ qw( Shape ) ],
     short_description => 'circle shape',
     abstract => 'circle shape',
+    autoloaded => 0,
 } );
 $coll->add_perl_bean( $circle );
 
@@ -70,6 +72,7 @@ my $square = PerlBean->new ( {
     base => [ qw( Shape ) ],
     short_description => 'square shape',
     abstract => 'square shape',
+    autoloaded => 0,
 } );
 $coll->add_perl_bean( $square );
 
@@ -99,6 +102,7 @@ my $rectangle = PerlBean->new ( {
     base => [ qw( Square ) ],
     short_description => 'rectangle shape',
     abstract => 'rectangle shape',
+    autoloaded => 0,
 } );
 $coll->add_perl_bean( $rectangle );
 
@@ -133,9 +137,3 @@ mkdir($dir);
 
 # Write the collection
 $coll->write($dir);
-
-# AutoSplit (usually this is done through Makefile.PL)
-use AutoSplit;
-foreach my $file ( <$dir/*pm> ) {
-    autosplit( $file, "$dir/auto", 0, 1);
-}

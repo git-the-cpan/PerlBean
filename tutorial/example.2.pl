@@ -21,6 +21,7 @@ my $perl_bean = PerlBean->new ( {
     package => 'MyTwistedMemory',
     short_description => 'my twisted memory',
     abstract => 'my twisted memory',
+    autoloaded => 0,
 } );
 $coll->add_perl_bean( $perl_bean );
 
@@ -105,10 +106,3 @@ mkdir($dir);
 
 # Write the collection
 $coll->write($dir);
-
-# AutoSplit (usually this is done through Makefile.PL)
-use AutoSplit;
-foreach my $file ( <$dir/*pm> ) {
-    autosplit( $file, "$dir/auto", 0, 1);
-}
-

@@ -1,14 +1,14 @@
 package PerlBean::Method::Constructor;
 
 use 5.005;
+use base qw( PerlBean::Method );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 
-use base qw(PerlBean::Method);
-
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -49,6 +49,10 @@ Passed to L<set_body()>.
 =item B<C<description>>
 
 Passed to L<set_description()>.
+
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
 
 =item B<C<exception_class>>
 
@@ -108,6 +112,10 @@ set_body(), get_body()
 
 set_description(), get_description()
 
+=item To access attribute named B<C<documented>>:
+
+set_documented(), is_documented()
+
 =item To access attribute named B<C<exception_class>>:
 
 set_exception_class(), get_exception_class()
@@ -144,8 +152,15 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 

@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'C<PerlBean::Attribute> object factory',
         package => 'PerlBean::Attribute::Factory',
+        use_perl_version => 5.005,
         description => <<EOF,
 C<PerlBean::Attribute::Factory> objects create instances of C<PerlBean::Attribute> objects.
 EOF

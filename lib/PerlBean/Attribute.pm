@@ -3,26 +3,37 @@ package PerlBean::Attribute;
 use 5.005;
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
-
+# Used by _value_is_allowed
 our %ALLOW_ISA = (
     'perl_bean' => [ 'PerlBean' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_REF = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_RX = (
     'attribute_name' => [ '^\w+$' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_VALUE = (
 );
+
+# Used by _value_is_allowed
 our %DEFAULT_VALUE = (
+    'documented' => 1,
     'exception_class' => 'Error::Simple',
     'mandatory' => 0,
 );
+
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -63,6 +74,10 @@ Passed to L<set_attribute_name()>. Mandatory option.
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
+
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
 
 =item B<C<exception_class>>
 
@@ -108,9 +123,9 @@ Calls C<get_package()> and replaces C<:+> with C <_>.
 
 Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_default_value(FILEHANDLE)
+=item write_default_value()
 
-This is an interface method. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This is an interface method. Returns a C<\%DEFAULT_VALUE> line string for the attribute.
 
 =item write_doc_clauses(FILEHANDLE)
 
@@ -163,6 +178,14 @@ Set attribute's default value. C<VALUE> is the value. On error an exception C<Er
 =item get_default_value()
 
 Returns attribute's default value.
+
+=item set_documented(VALUE)
+
+State that the attribute is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item is_documented()
+
+Returns whether the attribute is documented or not.
 
 =item set_exception_class(VALUE)
 
@@ -231,9 +254,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -294,6 +324,9 @@ sub _initialize {
 
     # default_value, SINGLE
     exists( $opt->{default_value} ) && $self->set_default_value( $opt->{default_value} );
+
+    # documented, BOOLEAN, with default value
+    $self->set_documented( exists( $opt->{documented} ) ? $opt->{documented} : $DEFAULT_VALUE{documented} );
 
     # exception_class, SINGLE, with default value
     $self->set_exception_class( exists( $opt->{exception_class} ) ? $opt->{exception_class} : $DEFAULT_VALUE{exception_class} );
@@ -446,6 +479,28 @@ sub get_default_value {
     my $self = shift;
 
     return( $self->{PerlBean_Attribute}{default_value} );
+}
+
+sub set_documented {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Attribute}{documented} = 1;
+    }
+    else {
+        $self->{PerlBean_Attribute}{documented} = 0;
+    }
+}
+
+sub is_documented {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Attribute}{documented} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
 }
 
 sub set_exception_class {

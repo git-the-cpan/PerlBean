@@ -3,34 +3,64 @@ package PerlBean;
 use 5.005;
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
+use PerlBean::Dependency::Require;
+use PerlBean::Dependency::Use;
 use PerlBean::Style qw(:codegen);
+use PerlBean::Symbol;
 
-our ( $VERSION ) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
+# Variable to not confuse AutoLoader
+our $END = '__END__';
 
+# Variable to not confuse AutoLoader
+our $PACKAGE = 'package';
+
+# Variable to not confuse AutoLoader
+our $SUB = 'sub';
+
+# Used by _value_is_allowed
 our %ALLOW_ISA = (
     'attribute' => [ 'PerlBean::Attribute' ],
     'collection' => [ 'PerlBean::Collection' ],
+    'dependency' => [ 'PerlBean::Dependency' ],
+    'export_tag_description' => [ 'PerlBean::Described::ExportTag' ],
     'method' => [ 'PerlBean::Method' ],
+    'symbol' => [ 'PerlBean::Symbol' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_REF = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_RX = (
     'abstract' => [ '^.*$' ],
     'base' => [ '^\S+$' ],
     'license' => [ '.*' ],
     'synopsis' => [ '.*' ],
-);
-our %ALLOW_VALUE = (
-);
-our %DEFAULT_VALUE = (
-    'exception_class' => 'Error::Simple',
-    'exported' => 0,
-    'package' => 'main',
-    'short_description' => 'NO DESCRIPTION AVAILABLE',
+    'use_perl_version' => [ '^v?\d+(\.[\d_]+)*' ],
 );
 
+# Used by _value_is_allowed
+our %ALLOW_VALUE = (
+);
+
+# Used by _value_is_allowed
+our %DEFAULT_VALUE = (
+    '_has_exports_' => 0,
+    'autoloaded' => 1,
+    'exception_class' => 'Error::Simple',
+    'package' => 'main',
+    'short_description' => 'NO DESCRIPTION AVAILABLE',
+    'singleton' => 0,
+    'use_perl_version' => $],
+);
+
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
+
+# Month names array
 our @MON = qw(
     January
     February
@@ -45,9 +75,6 @@ our @MON = qw(
     November
     December
 );
-our $PACKAGE = 'package';
-our $SUB = 'sub';
-our $END = '__END__';
 
 1;
 
@@ -112,6 +139,10 @@ Passed to L<set_abstract()>.
 
 Passed to L<set_attribute()>. Must be an C<ARRAY> reference.
 
+=item B<C<autoloaded>>
+
+Passed to L<set_autoloaded()>. Defaults to B<1>.
+
 =item B<C<base>>
 
 Passed to L<set_base()>. Must be an C<ARRAY> reference.
@@ -119,6 +150,14 @@ Passed to L<set_base()>. Must be an C<ARRAY> reference.
 =item B<C<collection>>
 
 Passed to L<set_collection()>.
+
+=item B<C<dependency>>
+
+Passed to L<set_dependency()>. Must be an C<ARRAY> reference. Defaults to a set of C<PerlBean::Dependency> objects that yields to:
+
+ use strict;
+ use warnings;
+ use Error qw(:try);
 
 =item B<C<description>>
 
@@ -128,9 +167,9 @@ Passed to L<set_description()>.
 
 Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
 
-=item B<C<exported>>
+=item B<C<export_tag_description>>
 
-Passed to L<set_exported()>. Defaults to B<0>.
+Passed to L<set_export_tag_description()>. Must be an C<ARRAY> reference.
 
 =item B<C<license>>
 
@@ -148,9 +187,21 @@ Passed to L<set_package()>. Defaults to B<'main'>.
 
 Passed to L<set_short_description()>. Defaults to B<'NO DESCRIPTION AVAILABLE'>.
 
+=item B<C<singleton>>
+
+Passed to L<set_singleton()>. Defaults to B<0>.
+
+=item B<C<symbol>>
+
+Passed to L<set_symbol()>. Must be an C<ARRAY> reference.
+
 =item B<C<synopsis>>
 
 Passed to L<set_synopsis()>.
+
+=item B<C<use_perl_version>>
+
+Passed to L<set_use_perl_version()>. Defaults to B<$]>.
 
 =back
 
@@ -163,26 +214,6 @@ Passed to L<set_synopsis()>.
 =item write(FILEHANDLE)
 
 Write the Perl class code to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-
-=item write_allow_isa_hash(FILEHANDLE)
-
-Write the C<%ALLOW_ISA> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-
-=item write_allow_ref_hash(FILEHANDLE)
-
-Write the C<%ALLOW_REF> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-
-=item write_allow_rx_hash(FILEHANDLE)
-
-Write the C<%ALLOW_RX> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-
-=item write_allow_value_hash(FILEHANDLE)
-
-Write the C<%ALLOW_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
-
-=item write_default_value_hash(FILEHANDLE)
-
-Write the C<%DEFAULT_VALUE> hash to C<FILEHANDLE>. C<FILEHANDLE> is an C<IO::Handle> object. On error an exception C<Error::Simple> is thrown.
 
 =item set_abstract(VALUE)
 
@@ -251,6 +282,14 @@ Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Attribute' obj
 =item values_attribute( [ KEY_ARRAY ] )
 
 Returns an C<ARRAY> containing the values of the list of 'PerlBean::Attribute' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+
+=item set_autoloaded(VALUE)
+
+State that the methods in the PerlBean are autoloaded. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item is_autoloaded()
+
+Returns whether the methods in the PerlBean are autoloaded or not.
 
 =item set_base(ARRAY)
 
@@ -336,6 +375,59 @@ Set class to throw when exception occurs. C<VALUE> is the value. On error an exc
 
 Returns class to throw when exception occurs.
 
+=item set_dependency( [ VALUE ... ] )
+
+Set the list of 'PerlBean::Dependency' objects absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<get_dependency_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+Defaults value at initialization is a set of C<PerlBean::Dependency> objects that yields to:
+
+ use strict;
+ use warnings;
+ use Error qw(:try);
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Dependency
+
+=back
+
+=back
+
+=item add_dependency( [ VALUE ... ] )
+
+Add additional values on the list of 'PerlBean::Dependency' objects. Each C<VALUE> is an object out of which the id is obtained through method C<get_dependency_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Dependency
+
+=back
+
+=back
+
+=item delete_dependency(ARRAY)
+
+Delete elements from the list of 'PerlBean::Dependency' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item exists_dependency(ARRAY)
+
+Returns the count of items in C<ARRAY> that are in the list of 'PerlBean::Dependency' objects.
+
+=item keys_dependency()
+
+Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Dependency' objects.
+
+=item values_dependency( [ KEY_ARRAY ] )
+
+Returns an C<ARRAY> containing the values of the list of 'PerlBean::Dependency' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+
 =item set_description(VALUE)
 
 Set the PerlBean description. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
@@ -352,13 +444,53 @@ Set class to throw when exception occurs. C<VALUE> is the value. Default value a
 
 Returns class to throw when exception occurs.
 
-=item set_exported(VALUE)
+=item set_export_tag_description( [ VALUE ... ] )
 
-State that the PerlBean must contain code for exporter. C<VALUE> is the value. Default value at initialization is C<0>. On error an exception C<Error::Simple> is thrown.
+Set the list of 'PerlBean::Described::ExportTag' objects absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<get_export_tag_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
 
-=item is_exported()
+=over
 
-Returns whether the PerlBean must contain code for exporter or not.
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Described::ExportTag
+
+=back
+
+=back
+
+=item add_export_tag_description( [ VALUE ... ] )
+
+Add additional values on the list of 'PerlBean::Described::ExportTag' objects. Each C<VALUE> is an object out of which the id is obtained through method C<get_export_tag_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Described::ExportTag
+
+=back
+
+=back
+
+=item delete_export_tag_description(ARRAY)
+
+Delete elements from the list of 'PerlBean::Described::ExportTag' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item exists_export_tag_description(ARRAY)
+
+Returns the count of items in C<ARRAY> that are in the list of 'PerlBean::Described::ExportTag' objects.
+
+=item keys_export_tag_description()
+
+Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Described::ExportTag' objects.
+
+=item values_export_tag_description( [ KEY_ARRAY ] )
+
+Returns an C<ARRAY> containing the values of the list of 'PerlBean::Described::ExportTag' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
 
 =item set_license(VALUE)
 
@@ -444,6 +576,62 @@ Set the short PerlBean description. C<VALUE> is the value. Default value at init
 
 Returns the short PerlBean description.
 
+=item set_singleton(VALUE)
+
+State that the package is a singleton and an C<instance()> method is implemented. C<VALUE> is the value. Default value at initialization is C<0>. On error an exception C<Error::Simple> is thrown.
+
+=item is_singleton()
+
+Returns whether the package is a singleton and an C<instance()> method is implemented or not.
+
+=item set_symbol( [ VALUE ... ] )
+
+Set the list of 'PerlBean::Symbol' objects absolutely using values. Each C<VALUE> is an object out of which the id is obtained through method C<get_symbol_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Symbol
+
+=back
+
+=back
+
+=item add_symbol( [ VALUE ... ] )
+
+Add additional values on the list of 'PerlBean::Symbol' objects. Each C<VALUE> is an object out of which the id is obtained through method C<get_symbol_name()>. The obtained B<key> is used to store the value and may be used for deletion and to fetch the value. 0 or more values may be supplied. Multiple occurences of the same key yield in the last occuring key to be inserted and the rest to be ignored. Each key of the specified values is allowed to occur only once. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item The values in C<ARRAY> must be a (sub)class of:
+
+=over
+
+=item PerlBean::Symbol
+
+=back
+
+=back
+
+=item delete_symbol(ARRAY)
+
+Delete elements from the list of 'PerlBean::Symbol' objects. Returns the number of deleted elements. On error an exception C<Error::Simple> is thrown.
+
+=item exists_symbol(ARRAY)
+
+Returns the count of items in C<ARRAY> that are in the list of 'PerlBean::Symbol' objects.
+
+=item keys_symbol()
+
+Returns an C<ARRAY> containing the keys of the list of 'PerlBean::Symbol' objects.
+
+=item values_symbol( [ KEY_ARRAY ] )
+
+Returns an C<ARRAY> containing the values of the list of 'PerlBean::Symbol' objects. If C<KEY_ARRAY> contains one or more C<KEY>s the values related to the C<KEY>s are returned. If no C<KEY>s specified all values are returned.
+
 =item set_synopsis(VALUE)
 
 Set the synopsis for the PerlBean. C<VALUE> is the value. On error an exception C<Error::Simple> is thrown.
@@ -464,6 +652,26 @@ Set the synopsis for the PerlBean. C<VALUE> is the value. On error an exception 
 
 Returns the synopsis for the PerlBean.
 
+=item set_use_perl_version(VALUE)
+
+Set the Perl version to use. C<VALUE> is the value. Default value at initialization is C<'$]'>. C<VALUE> may not be C<undef>. On error an exception C<Error::Simple> is thrown.
+
+=over
+
+=item VALUE must match regular expression:
+
+=over
+
+=item ^v?\d+(\.[\d_]+)*
+
+=back
+
+=back
+
+=item get_use_perl_version()
+
+Returns the Perl version to use.
+
 =back
 
 =head1 SEE ALSO
@@ -479,9 +687,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -536,6 +751,18 @@ sub _initialize {
     # Check $opt
     ref($opt) eq 'HASH' || throw Error::Simple("ERROR: PerlBean::_initialize, first argument must be 'HASH' reference.");
 
+    # _export_tag_, MULTI
+    if ( exists( $opt->{_export_tag_} ) ) {
+        ref( $opt->{_export_tag_} ) eq 'ARRAY' || throw Error::Simple("ERROR: PerlBean::_initialize, specified value for option '_export_tag_' must be an 'ARRAY' reference.");
+        $self->set__export_tag_( @{ $opt->{_export_tag_} } );
+    }
+    else {
+        $self->set__export_tag_();
+    }
+
+    # _has_exports_, BOOLEAN, with default value
+    $self->set__has_exports_( exists( $opt->{_has_exports_} ) ? $opt->{_has_exports_} : $DEFAULT_VALUE{_has_exports_} );
+
     # abstract, SINGLE
     exists( $opt->{abstract} ) && $self->set_abstract( $opt->{abstract} );
 
@@ -547,6 +774,9 @@ sub _initialize {
     else {
         $self->set_attribute();
     }
+
+    # autoloaded, BOOLEAN, with default value
+    $self->set_autoloaded( exists( $opt->{autoloaded} ) ? $opt->{autoloaded} : $DEFAULT_VALUE{autoloaded} );
 
     # base, MULTI
     if ( exists( $opt->{base} ) ) {
@@ -560,14 +790,48 @@ sub _initialize {
     # collection, SINGLE
     exists( $opt->{collection} ) && $self->set_collection( $opt->{collection} );
 
+    # dependency, MULTI, with default value
+    if ( exists( $opt->{dependency} ) ) {
+        ref( $opt->{dependency} ) eq 'ARRAY' || throw Error::Simple("ERROR: PerlBean::_initialize, specified value for option 'dependency' must be an 'ARRAY' reference.");
+        $self->set_dependency( @{ $opt->{dependency} } );
+    }
+    else {
+
+        # Empty the dependency list
+        $self->set_dependency();
+
+        # Add 'use strict'
+        $self->add_dependency( PerlBean::Dependency::Use->new( {
+            dependency_name => 'strict',
+        } ) );
+
+        # Add 'use warnings'
+        $self->add_dependency( PerlBean::Dependency::Use->new( {
+            dependency_name => 'warnings',
+        } ) );
+
+        # Add 'use Error qw(:try)'
+        $self->add_dependency( PerlBean::Dependency::Use->new( {
+            dependency_name => 'Error',
+            import_list => [ 'qw(:try)' ],
+        } ) );
+
+    }
+
     # description, SINGLE
     exists( $opt->{description} ) && $self->set_description( $opt->{description} );
 
     # exception_class, SINGLE, with default value
     $self->set_exception_class( exists( $opt->{exception_class} ) ? $opt->{exception_class} : $DEFAULT_VALUE{exception_class} );
 
-    # exported, BOOLEAN, with default value
-    $self->set_exported( exists( $opt->{exported} ) ? $opt->{exported} : $DEFAULT_VALUE{exported} );
+    # export_tag_description, MULTI
+    if ( exists( $opt->{export_tag_description} ) ) {
+        ref( $opt->{export_tag_description} ) eq 'ARRAY' || throw Error::Simple("ERROR: PerlBean::_initialize, specified value for option 'export_tag_description' must be an 'ARRAY' reference.");
+        $self->set_export_tag_description( @{ $opt->{export_tag_description} } );
+    }
+    else {
+        $self->set_export_tag_description();
+    }
 
     # license, SINGLE
     exists( $opt->{license} ) && $self->set_license( $opt->{license} );
@@ -587,8 +851,23 @@ sub _initialize {
     # short_description, SINGLE, with default value
     $self->set_short_description( exists( $opt->{short_description} ) ? $opt->{short_description} : $DEFAULT_VALUE{short_description} );
 
+    # singleton, BOOLEAN, with default value
+    $self->set_singleton( exists( $opt->{singleton} ) ? $opt->{singleton} : $DEFAULT_VALUE{singleton} );
+
+    # symbol, MULTI
+    if ( exists( $opt->{symbol} ) ) {
+        ref( $opt->{symbol} ) eq 'ARRAY' || throw Error::Simple("ERROR: PerlBean::_initialize, specified value for option 'symbol' must be an 'ARRAY' reference.");
+        $self->set_symbol( @{ $opt->{symbol} } );
+    }
+    else {
+        $self->set_symbol();
+    }
+
     # synopsis, SINGLE
     exists( $opt->{synopsis} ) && $self->set_synopsis( $opt->{synopsis} );
+
+    # use_perl_version, SINGLE, with default value
+    $self->set_use_perl_version( exists( $opt->{use_perl_version} ) ? $opt->{use_perl_version} : $DEFAULT_VALUE{use_perl_version} );
 
     # Return $self
     return($self);
@@ -598,17 +877,17 @@ sub write {
     my $self = shift;
     my $fh = shift;
 
+    # Finalize the package
+    $self->finalize();
+
     # Package heading
     $self->write_package_head($fh);
 
-    # Allow vairables
-    if ( scalar( $self->values_attribute() ) ) {
-        $self->write_allow_isa_hash($fh);
-        $self->write_allow_ref_hash($fh);
-        $self->write_allow_rx_hash($fh);
-        $self->write_allow_value_hash($fh);
-        $self->write_default_value_hash($fh);
-    }
+    # Dependencies
+    $self->write_dependencies($fh);
+
+    # Declared symbols
+    $self->write_declared_symbols($fh);
 
     # End of preloaded methods
     $self->write_preloaded_end($fh);
@@ -616,6 +895,8 @@ sub write {
     # Start pod documentation
     $self->write_doc_head($fh);
 
+    # Write EXPORT documentation
+    $self->write_doc_export($fh);
 
     # Get all methods that are callable from this package
     $self->get_callable_methods( \my %meth, {} );
@@ -703,99 +984,122 @@ sub write {
     }
 
     # Allow method
-    if ( scalar( $self->values_attribute() ) ) {
-        $self->write_value_allowed_method($fh);
+    $self->write_value_allowed_method($fh);
+
+    # End of file
+    $self->write_file_end($fh);
+}
+
+sub set__export_tag_ {
+    my $self = shift;
+
+    # Separate keys/values
+    my @key = ();
+    my @value = ();
+    while ( my $key = shift(@_) ) {
+        push( @key, $key );
+        push( @value, shift(@_) );
+    }
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( '_export_tag_', @value ) || throw Error::Simple("ERROR: PerlBean::set__export_tag_, one or more specified value(s) '@value' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean}{_export_tag_} = {};
+
+    # Add keys/values
+    foreach my $key (@key) {
+        $self->{PerlBean}{_export_tag_}{$key} = shift(@value);
     }
 }
 
-sub write_allow_isa_hash {
+sub add__export_tag_ {
     my $self = shift;
-    my $fh = shift;
 
-    $fh->print(<<EOF);
-our \%ALLOW_ISA${AO}=${AO}(
-EOF
-    foreach my $name ( sort( $self->keys_attribute() ) ) {
-        my $attribute = ($self->values_attribute($name))[0];
-        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
-        $attribute->write_allow_isa($fh);
+    # Separate keys/values
+    my @key = ();
+    my @value = ();
+    while ( my $key = shift(@_) ) {
+        push( @key, $key );
+        push( @value, shift(@_) );
     }
-    $fh->print(<<EOF);
-);
-EOF
 
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( '_export_tag_', @value ) || throw Error::Simple("ERROR: PerlBean::add__export_tag_, one or more specified value(s) '@value' is/are not allowed.");
+
+    # Add keys/values
+    foreach my $key (@key) {
+        $self->{PerlBean}{_export_tag_}{$key} = shift(@value);
+    }
 }
 
-sub write_allow_ref_hash {
+sub delete__export_tag_ {
     my $self = shift;
-    my $fh = shift;
 
-    $fh->print(<<EOF);
-our \%ALLOW_REF${AO}=${AO}(
-EOF
-    foreach my $name ( sort( $self->keys_attribute() ) ) {
-        my $attribute = ( $self->values_attribute($name) )[0];
-        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
-        $attribute->write_allow_ref($fh);
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean}{_export_tag_}{$val} ) || next;
+        delete( $self->{PerlBean}{_export_tag_}{$val} );
+        $del ++;
     }
-    $fh->print(<<EOF);
-);
-EOF
-
+    return($del);
 }
 
-sub write_allow_rx_hash {
+sub exists__export_tag_ {
     my $self = shift;
-    my $fh = shift;
 
-    $fh->print(<<EOF);
-our \%ALLOW_RX${AO}=${AO}(
-EOF
-    foreach my $name ( sort( $self->keys_attribute() ) ) {
-        my $attribute = ( $self->values_attribute($name) )[0];
-        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
-        $attribute->write_allow_rx($fh);
+    # Count occurences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean}{_export_tag_}{$val} );
     }
-    $fh->print(<<EOF);
-);
-EOF
-
+    return($count);
 }
 
-sub write_allow_value_hash {
+sub keys__export_tag_ {
     my $self = shift;
-    my $fh = shift;
 
-    $fh->print(<<EOF);
-our \%ALLOW_VALUE${AO}=${AO}(
-EOF
-    foreach my $name ( sort( $self->keys_attribute() ) ) {
-        my $attribute = ( $self->values_attribute($name) )[0];
-        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
-        $attribute->write_allow_value($fh);
-    }
-    $fh->print(<<EOF);
-);
-EOF
-
+    # Return all keys
+    return( keys( %{ $self->{PerlBean}{_export_tag_} } ) );
 }
 
-sub write_default_value_hash {
+sub values__export_tag_ {
     my $self = shift;
-    my $fh = shift;
 
-    $fh->print(<<EOF);
-our \%DEFAULT_VALUE${AO}=${AO}(
-EOF
-    foreach my $name ( sort( $self->keys_attribute() ) ) {
-        my $attribute = ( $self->values_attribute($name) )[0];
-        $attribute->write_default_value($fh);
+    if ( scalar(@_) ) {
+        my @ret = ();
+        foreach my $key (@_) {
+            exists( $self->{PerlBean}{_export_tag_}{$key} ) && push( @ret, $self->{PerlBean}{_export_tag_}{$key} );
+        }
+        return(@ret);
     }
-    $fh->print(<<EOF);
-);
+    else {
+        # Return all values
+        return( values( %{ $self->{PerlBean}{_export_tag_} } ) );
+    }
+}
 
-EOF
+sub set__has_exports_ {
+    my $self = shift;
 
+    if (shift) {
+        $self->{PerlBean}{_has_exports_} = 1;
+    }
+    else {
+        $self->{PerlBean}{_has_exports_} = 0;
+    }
+}
+
+sub is__has_exports_ {
+    my $self = shift;
+
+    if ( $self->{PerlBean}{_has_exports_} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
 }
 
 sub set_abstract {
@@ -888,6 +1192,28 @@ sub values_attribute {
     else {
         # Return all values
         return( values( %{ $self->{PerlBean}{attribute} } ) );
+    }
+}
+
+sub set_autoloaded {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean}{autoloaded} = 1;
+    }
+    else {
+        $self->{PerlBean}{autoloaded} = 0;
+    }
+}
+
+sub is_autoloaded {
+    my $self = shift;
+
+    if ( $self->{PerlBean}{autoloaded} ) {
+        return(1);
+    }
+    else {
+        return(0);
     }
 }
 
@@ -999,6 +1325,80 @@ sub get_collection {
     return( $self->{PerlBean}{collection} );
 }
 
+sub set_dependency {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'dependency', @_ ) || throw Error::Simple("ERROR: PerlBean::set_dependency, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean}{dependency} = {};
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{dependency}{ $val->get_dependency_name() } = $val;
+    }
+}
+
+sub add_dependency {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'dependency', @_ ) || throw Error::Simple("ERROR: PerlBean::add_dependency, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{dependency}{ $val->get_dependency_name() } = $val;
+    }
+}
+
+sub delete_dependency {
+    my $self = shift;
+
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean}{dependency}{$val} ) || next;
+        delete( $self->{PerlBean}{dependency}{$val} );
+        $del ++;
+    }
+    return($del);
+}
+
+sub exists_dependency {
+    my $self = shift;
+
+    # Count occurences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean}{dependency}{$val} );
+    }
+    return($count);
+}
+
+sub keys_dependency {
+    my $self = shift;
+
+    # Return all keys
+    return( keys( %{ $self->{PerlBean}{dependency} } ) );
+}
+
+sub values_dependency {
+    my $self = shift;
+
+    if ( scalar(@_) ) {
+        my @ret = ();
+        foreach my $key (@_) {
+            exists( $self->{PerlBean}{dependency}{$key} ) && push( @ret, $self->{PerlBean}{dependency}{$key} );
+        }
+        return(@ret);
+    }
+    else {
+        # Return all values
+        return( values( %{ $self->{PerlBean}{dependency} } ) );
+    }
+}
+
 sub set_description {
     my $self = shift;
     my $val = shift;
@@ -1036,25 +1436,77 @@ sub get_exception_class {
     return( $self->{PerlBean}{exception_class} );
 }
 
-sub set_exported {
+sub set_export_tag_description {
     my $self = shift;
 
-    if (shift) {
-        $self->{PerlBean}{exported} = 1;
-    }
-    else {
-        $self->{PerlBean}{exported} = 0;
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'export_tag_description', @_ ) || throw Error::Simple("ERROR: PerlBean::set_export_tag_description, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean}{export_tag_description} = {};
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{export_tag_description}{ $val->get_export_tag_name() } = $val;
     }
 }
 
-sub is_exported {
+sub add_export_tag_description {
     my $self = shift;
 
-    if ( $self->{PerlBean}{exported} ) {
-        return(1);
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'export_tag_description', @_ ) || throw Error::Simple("ERROR: PerlBean::add_export_tag_description, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{export_tag_description}{ $val->get_export_tag_name() } = $val;
+    }
+}
+
+sub delete_export_tag_description {
+    my $self = shift;
+
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean}{export_tag_description}{$val} ) || next;
+        delete( $self->{PerlBean}{export_tag_description}{$val} );
+        $del ++;
+    }
+    return($del);
+}
+
+sub exists_export_tag_description {
+    my $self = shift;
+
+    # Count occurences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean}{export_tag_description}{$val} );
+    }
+    return($count);
+}
+
+sub keys_export_tag_description {
+    my $self = shift;
+
+    # Return all keys
+    return( keys( %{ $self->{PerlBean}{export_tag_description} } ) );
+}
+
+sub values_export_tag_description {
+    my $self = shift;
+
+    if ( scalar(@_) ) {
+        my @ret = ();
+        foreach my $key (@_) {
+            exists( $self->{PerlBean}{export_tag_description}{$key} ) && push( @ret, $self->{PerlBean}{export_tag_description}{$key} );
+        }
+        return(@ret);
     }
     else {
-        return(0);
+        # Return all values
+        return( values( %{ $self->{PerlBean}{export_tag_description} } ) );
     }
 }
 
@@ -1188,6 +1640,102 @@ sub get_short_description {
     return( $self->{PerlBean}{short_description} );
 }
 
+sub set_singleton {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean}{singleton} = 1;
+    }
+    else {
+        $self->{PerlBean}{singleton} = 0;
+    }
+}
+
+sub is_singleton {
+    my $self = shift;
+
+    if ( $self->{PerlBean}{singleton} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
+}
+
+sub set_symbol {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'symbol', @_ ) || throw Error::Simple("ERROR: PerlBean::set_symbol, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Empty list
+    $self->{PerlBean}{symbol} = {};
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{symbol}{ $val->get_symbol_name() } = $val;
+    }
+}
+
+sub add_symbol {
+    my $self = shift;
+
+    # Check if isas/refs/rxs/values are allowed
+    &_value_is_allowed( 'symbol', @_ ) || throw Error::Simple("ERROR: PerlBean::add_symbol, one or more specified value(s) '@_' is/are not allowed.");
+
+    # Add keys/values
+    foreach my $val (@_) {
+        $self->{PerlBean}{symbol}{ $val->get_symbol_name() } = $val;
+    }
+}
+
+sub delete_symbol {
+    my $self = shift;
+
+    # Delete values
+    my $del = 0;
+    foreach my $val (@_) {
+        exists( $self->{PerlBean}{symbol}{$val} ) || next;
+        delete( $self->{PerlBean}{symbol}{$val} );
+        $del ++;
+    }
+    return($del);
+}
+
+sub exists_symbol {
+    my $self = shift;
+
+    # Count occurences
+    my $count = 0;
+    foreach my $val (@_) {
+        $count += exists( $self->{PerlBean}{symbol}{$val} );
+    }
+    return($count);
+}
+
+sub keys_symbol {
+    my $self = shift;
+
+    # Return all keys
+    return( keys( %{ $self->{PerlBean}{symbol} } ) );
+}
+
+sub values_symbol {
+    my $self = shift;
+
+    if ( scalar(@_) ) {
+        my @ret = ();
+        foreach my $key (@_) {
+            exists( $self->{PerlBean}{symbol}{$key} ) && push( @ret, $self->{PerlBean}{symbol}{$key} );
+        }
+        return(@ret);
+    }
+    else {
+        # Return all values
+        return( values( %{ $self->{PerlBean}{symbol} } ) );
+    }
+}
+
 sub set_synopsis {
     my $self = shift;
     my $val = shift;
@@ -1203,6 +1751,26 @@ sub get_synopsis {
     my $self = shift;
 
     return( $self->{PerlBean}{synopsis} );
+}
+
+sub set_use_perl_version {
+    my $self = shift;
+    my $val = shift;
+
+    # Value for 'use_perl_version' is not allowed to be empty
+    defined($val) || throw Error::Simple("ERROR: PerlBean::set_use_perl_version, value may not be empty.");
+
+    # Check if isa/ref/rx/value is allowed
+    &_value_is_allowed( 'use_perl_version', $val ) || throw Error::Simple("ERROR: PerlBean::set_use_perl_version, the specified value '$val' is not allowed.");
+
+    # Assignment
+    $self->{PerlBean}{use_perl_version} = $val;
+}
+
+sub get_use_perl_version {
+    my $self = shift;
+
+    return( $self->{PerlBean}{use_perl_version} );
 }
 
 sub _value_is_allowed {
@@ -1246,6 +1814,366 @@ sub _value_is_allowed {
 
     # OK, all values are allowed
     return(1);
+}
+
+sub finalize {
+    my $self = shift;
+
+    # Check if exporter is needed
+    $self->mk_has_exports_();
+
+    # Finalize singleton
+    $self->finalize_singleton();
+
+    # Finalize autoload
+    $self->finalize_autoload();
+
+    # Finalize allowed
+    $self->finalize_allowed();
+
+    # Finalize 'use base'
+    $self->finalize_use_base();
+
+    # Finalize exports
+    $self->finalize_exports();
+
+    # Finalize version
+    $self->finalize_version();
+}
+
+sub finalize_allowed {
+    my $self = shift;
+
+    # Delete the allow symbols
+    $self->delete_symbol( qw( %ALLOW_ISA %ALLOW_REF %ALLOW_RX %ALLOW_VALUE
+                                                            %DEFAULT_VALUE ) );
+
+    # Finish if no attributes
+    $self->keys_attribute() || return;
+
+    # %ALLOW_ISA symbol
+    my $aia = "(\n";
+    foreach my $name ( sort( $self->keys_attribute() ) ) {
+        my $attribute = ($self->values_attribute($name))[0];
+        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
+        $aia .= $attribute->write_allow_isa();
+    }
+    $aia .= ");\n";
+    my $ai = PerlBean::Symbol->new( {
+        symbol_name => '%ALLOW_ISA',
+        assignment => $aia,
+        comment => "# Used by _value_is_allowed\n",
+    } );
+    $self->add_symbol($ai);
+
+    # %ALLOW_REF symbol
+    my $ara = "(\n";
+    foreach my $name ( sort( $self->keys_attribute() ) ) {
+        my $attribute = ( $self->values_attribute($name) )[0];
+        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
+        $ara .= $attribute->write_allow_ref();
+    }
+    $ara .= ");\n";
+    my $ar = PerlBean::Symbol->new( {
+        symbol_name => '%ALLOW_REF',
+        assignment => $ara,
+        comment => "# Used by _value_is_allowed\n",
+    } );
+    $self->add_symbol($ar);
+
+    # %ALLOW_RX symbol
+    my $arxa = "(\n";
+    foreach my $name ( sort( $self->keys_attribute() ) ) {
+        my $attribute = ( $self->values_attribute($name) )[0];
+        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
+        $arxa .= $attribute->write_allow_rx();
+    }
+    $arxa .= ");\n";
+    my $arx = PerlBean::Symbol->new( {
+        symbol_name => '%ALLOW_RX',
+        assignment => $arxa,
+        comment => "# Used by _value_is_allowed\n",
+    } );
+    $self->add_symbol($arx);
+
+    # %ALLOW_VALUE symbol
+    my $ava = "(\n";
+    foreach my $name ( sort( $self->keys_attribute() ) ) {
+        my $attribute = ( $self->values_attribute($name) )[0];
+        next if ( $attribute->isa('PerlBean::Attribute::Boolean') );
+        $ava .= $attribute->write_allow_value();
+    }
+    $ava .= ");\n";
+    my $av = PerlBean::Symbol->new( {
+        symbol_name => '%ALLOW_VALUE',
+        assignment => $ava,
+        comment => "# Used by _value_is_allowed\n",
+    } );
+    $self->add_symbol($av);
+
+    # %DEFAULT_VALUE symbol
+    my $dva = "(\n";
+    foreach my $name ( sort( $self->keys_attribute() ) ) {
+        my $attribute = ( $self->values_attribute($name) )[0];
+        $dva .= $attribute->write_default_value();
+    }
+    $dva .= ");\n";
+    my $dv = PerlBean::Symbol->new( {
+        symbol_name => '%DEFAULT_VALUE',
+        assignment => $dva,
+        comment => "# Used by _value_is_allowed\n",
+    } );
+    $self->add_symbol($dv);
+}
+
+sub finalize_version {
+    my $self = shift;
+
+    # Make the $VERSION symbol if not already made
+    if ( ! $self->exists_symbol('$VERSION') &&
+            ! $self->exists_symbol('($VERSION)') ) {
+
+        # make the version assignement
+        my $va = '\'$';
+        $va .= 'Revision: 0.0.0.0';
+        $va .= "\$'${AO}=~${AO}/\\\$";
+        $va .= 'Revision:\\s+([^\\s]+)/;';
+        $va .= "\n";
+
+        # Add the ($VERSION) symbol
+        my $v = PerlBean::Symbol->new( {
+            symbol_name => '($VERSION)',
+            assignment => $va,
+            comment => "# Package version\n",
+        } );
+        $self->add_symbol($v);
+    }
+}
+
+sub finalize_autoload {
+    my $self = shift;
+
+    $self->delete_dependency('AutoLoader');
+
+    $self->is_autoloaded() || return;
+
+    if ( ! $self->exists_dependency('AutoLoader') ) {
+        # use AutoLoader qw(AUTOLOAD);
+        my $a = PerlBean::Dependency::Use->new( {
+            dependency_name => 'AutoLoader',
+            import_list => [ 'qw(AUTOLOAD)' ],
+        } );
+        $self->add_dependency($a);
+    }
+}
+
+sub finalize_exports {
+    my $self = shift;
+
+    $self->is__has_exports_() || return;
+
+    # require Exporter
+    my $dep = PerlBean::Dependency::Require->new( {
+        dependency_name => 'Exporter',
+    } );
+    $self->add_dependency($dep);
+
+    # Delete the export symbols
+    $self->delete_symbol( qw( %EXPORT_TAGS @EXPORT_OK @EXPORT ) );
+
+    # Get all export tags
+    #my %TAG = ();
+    $self->set__export_tag_();
+    foreach my $sym ( $self->values_symbol() ) {
+        foreach my $tag ( $sym->values_export_tag() ) {
+            #$TAG{$tag} ||= [];
+            #push( @{ $TAG{$tag} }, $sym );
+            $self->exists__export_tag_($tag) ||
+                                            $self->add__export_tag_($tag, []);
+            push( @{ ( $self->values__export_tag_($tag) )[0] }, $sym );
+        }
+    }
+
+    # The %EXPORT_TAGS assignement head
+    my $ETA = "(\n";
+
+    # Fill $ETA
+    foreach my $tag ( sort( $self->keys__export_tag_() ) ) {
+
+        # The %EXPORT_TAGS assignement head for this tag
+        $ETA .= "${IND}'$tag' => [ qw(\n";
+
+        # Fill out the lines alphabetically
+        foreach my $name ( sort( $self->keys_symbol() ) ) {
+
+             # Get the symbol
+             my $sym = ( $self->values_symbol($name) )[0];
+
+             # Skip if not in tag
+             $sym->exists_export_tag($tag) || next;
+
+             # Add the line
+             $ETA .= "${IND}${IND}$name\n";
+        }
+
+        # The %EXPORT_TAGS assignement tail for this tag
+        $ETA .= "${IND}) ],\n";
+    }
+
+    # The %EXPORT_TAGS assignement tail
+    $ETA .= ");\n";
+
+    # The @EXPORT_OK assignement head
+    my $EOA = "qw(\n";
+
+    # The @EXPORT assignement head
+    my $EA = "qw(\n";
+
+    # Fill $EOA and $EA
+    foreach my $name ( sort( $self->keys_symbol() ) ) {
+         # Get the symbol
+         my $sym = ( $self->values_symbol($name) )[0];
+
+         # Next if no tag
+         $sym->values_export_tag() || next;
+
+         # Add the line to $EOA
+         $EOA .= "${IND}$name\n";
+
+         # Next if no default tag
+         $sym->exists_export_tag('default') || next;
+
+         # Add the line to $EA
+         $EA .= "${IND}$name\n";
+
+    }
+
+    # The @EXPORT_OK assignement tail
+    $EOA .= ");\n";
+
+    # The @EXPORT assignement tail
+    $EA .= ");\n";
+
+    # Make and add the symbols %EXPORT_TAGS
+    my $et = PerlBean::Symbol->new( {
+        symbol_name => '%EXPORT_TAGS',
+        assignment => $ETA,
+        comment => "# Exporter variable\n",
+    } );
+    $self->add_symbol($et);
+
+    # Make and add the symbols @EXPORT_OK
+    my $eo = PerlBean::Symbol->new( {
+        symbol_name => '@EXPORT_OK',
+        assignment => $EOA,
+        comment => "# Exporter variable\n",
+    } );
+    $self->add_symbol($eo);
+
+    # Make and add the symbols @EXPORT
+    my $e = PerlBean::Symbol->new( {
+        symbol_name => '@EXPORT',
+        assignment => $EA,
+        comment => "# Exporter variable\n",
+    } );
+    $self->add_symbol($e);
+}
+
+sub finalize_singleton {
+    my $self = shift;
+
+    $self->is_singleton() || return;
+
+    # Symbol
+    if ( ! $self->exists_symbol('$SINGLETON') ) {
+
+        # Make the $SINGLETON symbol
+        my $s = PerlBean::Symbol->new( {
+            symbol_name => '$SINGLETON',
+            assignment => "undef;\n",
+            comment => "# Singleton variable\n",
+        } );
+        $self->add_symbol($s);
+    }
+
+    # Method
+    if ( ! $self->exists_method('instance') ) {
+
+        # Package name
+        my $pkg = $self->get_package();
+
+        # Make the instance() method
+        my $i = PerlBean::Method->new( {
+            method_name => 'instance',
+            parameter_description => ' [ CONSTR_OPT ] ',
+            description => <<EOF,
+Always returns the same C<${pkg}> -singleton- object instance. The first time it is called, parameters C<CONSTR_OPT> -if specified- are passed to the constructor.
+EOF
+                body => <<EOF,
+${IND}# Allow calls like:
+${IND}# - ${pkg}::instance()
+${IND}# - ${pkg}->instance()
+${IND}# - \$variable->instance()
+${IND}if${BCP}(${ACS}ref${BFP}(\$_[0])${AO}&&${AO}&UNIVERSAL::isa(${ACS}\$_[0], '${pkg}'${ACS})${ACS}) {
+${IND}${IND}shift;
+${IND}}${PBCC[1]}elsif${BCP}(${ACS}!${AO}ref${BFP}(\$_[0])${AO}&&${AO}\$_[0]${AO}eq${AO}'${pkg}'${ACS})${PBOC[1]}{
+${IND}${IND}shift;
+${IND}}
+
+${IND}# If \$SINGLETON is defined return it
+${IND}defined${BFP}(\$SINGLETON) && return${BFP}(\$SINGLETON);
+
+${IND}# Create the object and set \$SINGLETON
+${IND}\$SINGLETON${AO}=${AO}${pkg}->new${BFP}();
+
+${IND}# Initialize the object separately as the initialization might
+${IND}# depend on \$SINGLETON being set.
+${IND}\$SINGLETON->_initialize${BFP}(\@_);
+
+${IND}# Return \$SINGLETON
+${IND}return${BFP}(\$SINGLETON);
+EOF
+        } );
+        $self->add_method($i);
+    }
+}
+
+sub finalize_use_base {
+    my $self = shift;
+
+    my @base = $self->get_base();
+    $self->is__has_exports_() && push( @base, 'Exporter' );
+    if ( scalar(@base) ) {
+        my $dep = PerlBean::Dependency::Use->new( {
+            dependency_name => 'base',
+            import_list => [ "qw( @base )" ],
+        } );
+        $self->add_dependency($dep);
+    }
+}
+
+sub mk_has_exports_ {
+    my $self = shift;
+
+    # Check all symbols
+    foreach my $sym ( $self->values_symbol() ) {
+
+        # But discard the export symbols
+        if ( $sym->get_symbol_name() eq '%EXPORT_TAGS' ||
+                $sym->get_symbol_name() eq '@EXPORT_OK' ||
+                $sym->get_symbol_name() eq '@EXPORT' ) {
+            next;
+        }
+
+        # Check if the symbol is exported
+        if ( scalar( $sym->values_export_tag() ) ) {
+            $self->set__has_exports_(1);
+            return;
+        }
+    }
+
+    # Nothing found to export
+    $self->set__has_exports_(0);
 }
 
 sub get_overloaded_attribute {
@@ -1408,6 +2336,17 @@ sub super_class_in_collection {
     return( defined($super_bean) );
 }
 
+sub write_declared_symbols {
+    my $self = shift;
+    my $fh = shift;
+
+    foreach my $name ( sort( $self->keys_symbol() ) ) {
+        my $symbol = ( $self->values_symbol($name) )[0];
+
+        $symbol->write($fh);
+    }
+}
+
 sub write_doc_constructor_body {
     my $self = shift;
     my $fh = shift;
@@ -1440,13 +2379,21 @@ sub write_doc_constructor_body_constructors {
     }
 }
 
+sub write_file_end {
+    my $self = shift;
+    my $fh = shift;
+
+    # Close the file with a '1;' only if not autoloaded
+    $self->is_autoloaded() && return;
+
+    $fh->print("1;\n");
+}
+
 sub write_doc_inherit_constructor_body {
     my $self = shift;
     my $fh = shift;
     my $attr = shift;
     my $pkg = shift;
-
-    
 
     foreach my $pkg_name (sort(keys(%{$pkg}))) {
         next if ($self->get_package() eq $pkg_name);
@@ -1526,6 +2473,50 @@ sub write_doc_constructor_tail {
 EOF
 }
 
+sub write_doc_export {
+    my $self = shift;
+    my $fh = shift;
+
+    # Stop if no exports
+    $self->is__has_exports_() || return;
+
+    $fh->print( "=head1 EXPORT\n\n" );
+
+    if ( ! $self->exists_export_tag_description('default') ) {
+        $fh->print( "By default nothing is exported.\n\n" );
+    }
+
+    foreach my $tag ( sort( $self->keys__export_tag_() ) ) {
+
+        $fh->print( "=head2 $tag\n\n" );
+
+        if ( $self->exists_export_tag_description($tag) ) {
+            my $tdesc = ( $self->values_export_tag_description($tag) )[0];
+            $fh->print( $tdesc->get_description(), "\n" );
+        } else {
+            $fh->print( "TODO\n\n" );
+        }
+
+        $fh->print( "=over\n\n" );
+
+        foreach my $name ( sort( $self->keys_symbol() ) ) {
+
+             # Get the symbol
+             my $sym = ( $self->values_symbol($name) )[0];
+
+             # Skip if not in tag
+             $sym->exists_export_tag($tag) || next;
+
+             # Add the lines
+             $fh->print( "=item $name\n\n" );
+
+             $fh->print( $sym->get_description(), "\n" );
+        }
+
+        $fh->print( "=back\n\n" );
+    }
+}
+
 sub write_doc_head {
     my $self = shift;
     my $fh = shift;
@@ -1533,37 +2524,26 @@ sub write_doc_head {
     my $pkg = $self->get_package();
     my $sdesc = $self->get_short_description();
 
-    my $desc = defined($self->get_description()) ? $self->get_description() : "C<$pkg> TODO\n";
+    my $desc = defined($self->get_description()) ?
+                            $self->get_description() : "C<$pkg> TODO\n";
 
-    my $syn = defined($self->get_synopsis()) ? $self->get_synopsis() : " TODO\n";
+    my $syn = defined($self->get_synopsis()) ?
+                            $self->get_synopsis() : " TODO\n";
 
-    my $abs = defined($self->get_abstract()) ? $self->get_abstract() : "TODO\n";
+    my $abs = defined($self->get_abstract()) ?
+                            $self->get_abstract() : 'TODO';
 
-    $fh->print(<<EOF);
-\=head1 NAME
+    $fh->print( "=head1 NAME\n\n" );
+    $fh->print( "${pkg} - ${sdesc}\n\n" );
 
-${pkg} - ${sdesc}
+    $fh->print( "=head1 SYNOPSIS\n\n" );
+    $fh->print( "${syn}\n" );
 
-\=head1 SYNOPSIS
+    $fh->print( "=head1 ABSTRACT\n\n" );
+    $fh->print( "${abs}\n\n" );
 
-$syn
-\=head1 ABSTRACT
-
-$abs
-
-\=head1 DESCRIPTION
-
-${desc}
-EOF
-
-    if ($self->is_exported()) {
-        $fh->print(<<EOF);
-\=head1 EXPORT
-
-TODO
-
-EOF
-    }
+    $fh->print( "=head1 DESCRIPTION\n\n" );
+    $fh->print( "${desc}\n" );
 }
 
 sub write_doc_methods_body {
@@ -1655,7 +2635,6 @@ Copyright ${y} by ${p}
 \=head1 LICENSE
 
 $lic
-
 \=cut
 
 EOF
@@ -1739,7 +2718,7 @@ $SUB _initialize${PBOC[0]}{
 ${IND}my \$self${AO}=${AO}shift;
 EOF
 
-    if ( scalar( $self->values_attribute() ) ) {
+    if ( scalar( $self->values_attribute() ) || scalar( $self->keys_method() )) {
         $fh->print(<<EOF);
 ${IND}my \$opt${AO}=${AO}defined${BFP}(\$_[0])${AO}?${AO}shift${AO}:${AO}{};
 
@@ -1814,46 +2793,73 @@ ${IND}return${BFP}(${ACS}\$self->_initialize${BFP}(\@_)${ACS});
 EOF
 }
 
+sub write_dependencies {
+    my $self = shift;
+    my $fh = shift;
+
+    # Perl version
+    my $pv = $self->get_use_perl_version();
+    $fh->print("use $pv;\n");
+
+    # Write PerlBean::Dependency::Use
+    foreach my $dependency_name ( sort {&by_pragma}
+                                            ( $self->keys_dependency() ) ) {
+        my $dep = ( $self->values_dependency($dependency_name) )[0];
+
+        $dep->isa('PerlBean::Dependency::Use') || next;
+
+        $dep->write($fh);
+    }
+
+    # Write PerlBean::Dependency::Require
+    foreach my $dependency_name ( sort {&by_pragma}
+                                            ( $self->keys_dependency() ) ) {
+        my $dep = ( $self->values_dependency($dependency_name) )[0];
+
+        $dep->isa('PerlBean::Dependency::Require') || next;
+
+        $dep->write($fh);
+    }
+
+    # Write PerlBean::Dependency::Import
+    foreach my $dependency_name ( sort {&by_pragma}
+                                            ( $self->keys_dependency() ) ) {
+        my $dep = ( $self->values_dependency($dependency_name) )[0];
+
+        $dep->isa('PerlBean::Dependency::Import') || next;
+
+        $dep->write($fh);
+    }
+
+    $fh->print("\n");
+}
+
 sub write_package_head {
     my $self = shift;
     my $fh = shift;
 
     my $pkg = $self->get_package();
-    $fh->print(<<EOF);
-$PACKAGE $pkg;
+    $fh->print("$PACKAGE $pkg;\n\n");
+}
 
-use $];
-use strict;
-use warnings;
-use Error qw${BFP}(:try);
-use AutoLoader qw${BFP}(AUTOLOAD);
 
-EOF
-
-    if ($self->is_exported()) {
-        $fh->print(<<EOF);
-require Exporter;
-
-EOF
-    }
-
+sub fooooooo {
     # base
     if (scalar($self->get_base())) {
         my @base = $self->get_base();
-        $self->is_exported() && push(@base, qw(Exporter));
         $fh->print(<<EOF);
 use base qw${BFP}(@base);
 
 EOF
     }
-    elsif ($self->is_exported()) {
+    elsif ( 0 ) {
         $fh->print(<<EOF);
 our \@ISA${AO}=${AO}qw${BFP}(Exporter);
 
 EOF
     }
 
-    if ($self->is_exported()) {
+    if ( 0 ) {
         $fh->print(<<EOF);
 our \%EXPORT_TAGS${AO}=${AO}(
 ${IND}'all'${AO}=>${AO}[
@@ -1868,20 +2874,26 @@ our \@EXPORT${AO}=${AO}qw${BFP}(
 
 EOF
     }
+}
 
-    my $version = "our (\$VERSION)${AO}=${AO}'\$";
-    $version .= 'Revision: 0.0.0.0';
-    $version .= "\$'${AO}=~${AO}/\\\$";
-    $version .= 'Revision:\\s+([^\\s]+)/;';
-    $fh->print(<<EOF);
-${version}
-
-EOF
+sub by_pragma {
+    if ($a =~ /^[a-z]/ && $b !~ /^[a-z]/ ) {
+        return(-1);
+    }
+    elsif ($a !~ /^[a-z]/ && $b =~ /^[a-z]/ ) {
+        return(1);
+    }
+    else {
+        return($a cmp $b );
+    }
 }
 
 sub write_preloaded_end {
     my $self = shift;
     my $fh = shift;
+
+    # End preload only for non autoloaded beans
+    $self->is_autoloaded() || return;
 
     $fh->print(<<EOF);
 1;
@@ -1894,6 +2906,8 @@ EOF
 sub write_value_allowed_method {
     my $self = shift;
     my $fh = shift;
+
+    scalar( $self->values_attribute() ) || return;
 
     $fh->print(<<EOF);
 $SUB _value_is_allowed${PBOC[0]}{

@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'Abstract PerlBean attribute information',
         package => 'PerlBean::Attribute',
+        use_perl_version => 5.005,
         description => <<EOF,
 C<PerlBean::Attribute> abstract class for bean attribute information. Attribute access methods are implemented and code and documentation generation interface methods are defined.
 EOF
@@ -23,6 +24,12 @@ EOF
             attribute_name => 'default_value',
             type => 'SINGLE',
             short_description => 'attribute\'s default value',
+        },
+        {
+            attribute_name => 'documented',
+            type => 'BOOLEAN',
+            default_value => 1,
+            short_description => 'the attribute is documented',
         },
         {
             attribute_name => 'exception_class',
@@ -93,9 +100,8 @@ EOF
         },
         {
             method_name => 'write_default_value',
-            parameter_description => 'FILEHANDLE',
             description => <<EOF,
-Writes C<\%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<\%DEFAULT_VALUE> line string for the attribute.
 EOF
             interface => 1,
         },
@@ -133,6 +139,12 @@ EOF
             description => <<EOF,
 Writes documentation for the clauses to which the contents the contents of the attribute must adhere. C<FILEHANDLE> is an C<IO::Handle> object.
 EOF
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

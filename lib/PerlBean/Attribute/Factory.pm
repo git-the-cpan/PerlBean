@@ -3,10 +3,11 @@ package PerlBean::Attribute::Factory;
 use 5.005;
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 
-our ( $VERSION ) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
+# Package version
+our ( $VERSION ) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -160,9 +161,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 

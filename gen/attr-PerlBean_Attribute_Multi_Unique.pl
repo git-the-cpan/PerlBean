@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'Unique MULTI bean attribute information',
         package => 'PerlBean::Attribute::Multi::Unique',
+        use_perl_version => 5.005,
         base => [ qw(PerlBean::Attribute::Multi)],
         description => <<EOF,
 C<PerlBean::Attribute::Multi::Unique> contains unique MULTI bean attribute information. It is a subclass of C<PerlBean::Attribute::Multi>. The code generation and documentation methods from C<PerlBean::Attribute> are implemented.
@@ -31,6 +32,21 @@ EOF
             description => <<EOF,
 __SUPER_POD__ Access methods are B<set...>, B<add...>, B<delete...>, B<exists...> and B<values...>.
 EOF
+        },
+    ],
+    sym_opt => [
+        {
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
+EOF
+            assignment => "'sub';\n",
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

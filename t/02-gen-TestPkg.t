@@ -183,7 +183,8 @@ EOF
 );
 
 my $bean = PerlBean->new ({
-    package => 'tmp::TestPkg'
+    package => 'tmp::TestPkg',
+    autoloaded => 0,
 });
 my $factory = PerlBean::Attribute::Factory->new ();
 
@@ -207,9 +208,6 @@ foreach my $meth_opt (@constr_opt) {
 my $fh = IO::File->new ('> tmp/TestPkg.pm');
 $bean->write ($fh);
 $fh->close ();
-
-use AutoSplit;
-autosplit('tmp/TestPkg.pm', 'auto', 0, 1, 1) ;
 
 system ("$^X -c tmp/TestPkg.pm > /dev/null 2>&1");
 if ($?>>8) {

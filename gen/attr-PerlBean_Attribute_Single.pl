@@ -4,6 +4,7 @@ push(@::bean_desc, {
     bean_opt => {
         abstract => 'SINGLE bean attribute information',
         package => 'PerlBean::Attribute::Single',
+        use_perl_version => 5.005,
         base => [ qw(PerlBean::Attribute)],
         description => <<EOF,
 C<PerlBean::Attribute::Single> contains SINGLE bean attribute information. It is a subclass of C<PerlBean::Attribute>. The code and documentation methods are implemented.
@@ -64,31 +65,42 @@ EOF
         },
         {
             method_name => 'write_allow_isa',
-            parameter_description => 'FILEHANDLE',
             description => <<EOF,
-Writes C<\%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<\%ALLOW_ISA> line string for the attribute.
 EOF
         },
         {
             method_name => 'write_allow_ref',
-            parameter_description => 'FILEHANDLE',
             description => <<EOF,
-Writes C<\%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<\%ALLOW_REF> line string for the attribute.
 EOF
         },
         {
             method_name => 'write_allow_rx',
-            parameter_description => 'FILEHANDLE',
             description => <<EOF,
-Writes C<\%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<\%ALLOW_RX> line string for the attribute.
 EOF
         },
         {
             method_name => 'write_allow_value',
-            parameter_description => 'FILEHANDLE',
             description => <<EOF,
-Writes C<\%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<\%ALLOW_VALUE> line string for the attribute.
 EOF
+        },
+    ],
+    sym_opt => [
+        {
+            symbol_name => '$SUB',
+            comment => <<EOF,
+# Variable to not confuse AutoLoader
+EOF
+            assignment => "'sub';\n",
+        },
+    ],
+    use_opt => [
+        {
+            dependency_name => 'PerlBean::Style',
+            import_list => [ 'qw(:codegen)' ],
         },
     ],
 } );

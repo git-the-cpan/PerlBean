@@ -1,29 +1,39 @@
 package PerlBean::Attribute::Single;
 
 use 5.005;
+use base qw( PerlBean::Attribute );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-use base qw(PerlBean::Attribute);
+# Variable to not confuse AutoLoader
+our $SUB = 'sub';
 
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
-
+# Used by _value_is_allowed
 our %ALLOW_ISA = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_REF = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_RX = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_VALUE = (
 );
+
+# Used by _value_is_allowed
 our %DEFAULT_VALUE = (
     'allow_empty' => 1,
 );
 
-our $SUB = 'sub';
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -102,6 +112,10 @@ Passed to L<set_attribute_name()>. Mandatory option.
 
 Passed to L<set_default_value()>.
 
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
+
 =item B<C<exception_class>>
 
 Passed to L<set_exception_class()>. Defaults to B<'Error::Simple'>.
@@ -146,25 +160,25 @@ This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_pack
 
 This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_allow_isa(FILEHANDLE)
+=item write_allow_isa()
 
-Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<%ALLOW_ISA> line string for the attribute.
 
-=item write_allow_ref(FILEHANDLE)
+=item write_allow_ref()
 
-Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<%ALLOW_REF> line string for the attribute.
 
-=item write_allow_rx(FILEHANDLE)
+=item write_allow_rx()
 
-Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<%ALLOW_RX> line string for the attribute.
 
-=item write_allow_value(FILEHANDLE)
+=item write_allow_value()
 
-Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+Returns a C<%ALLOW_VALUE> line string for the attribute.
 
-=item write_default_value(FILEHANDLE)
+=item write_default_value()
 
-This method is an implementation from package C<'PerlBean::Attribute'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is an implementation from package C<'PerlBean::Attribute'>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =item write_doc_clauses(FILEHANDLE)
 
@@ -327,9 +341,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative>,
 L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -424,83 +445,67 @@ sub _initialize {
 
 sub write_allow_isa {
     my $self = shift;
-    my $fh = shift;
 
-    if ( scalar( $self->values_allow_isa() ) ) {
-        my $an = $self->esc_aq( $self->get_attribute_name() );
-        my $dv = $self->esc_aq( sort( $self->values_allow_isa() ) );
-        $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}[${ACS}$dv${ACS}],
-EOF
-    }
+    scalar( $self->values_allow_isa() ) || return('');
+
+    my $an = $self->esc_aq( $self->get_attribute_name() );
+    my $dv = $self->esc_aq( sort( $self->values_allow_isa() ) );
+    return( "${IND}$an${AO}=>${AO}[${ACS}$dv${ACS}],\n" );
 }
 
 sub write_allow_ref {
     my $self = shift;
-    my $fh = shift;
 
-    if (scalar($self->values_allow_ref())) {
-        my $an = $self->esc_aq( $self->get_attribute_name() );
-        $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}{
-EOF
-        my @dv = sort( $self->esc_aq( $self->values_allow_ref() ) );
-        foreach my $dv (@dv) {
-            $fh->print(<<EOF);
-${IND}${IND}$dv${AO}=>${AO}1,
-EOF
-        }
-        $fh->print(<<EOF);
-${IND}},
-EOF
+    scalar( $self->values_allow_ref() ) || return('');
+
+    my $an = $self->esc_aq( $self->get_attribute_name() );
+    my @dv = sort( $self->esc_aq( $self->values_allow_ref() ) );
+
+    my $ass = "${IND}$an${AO}=>${AO}{\n";
+    foreach my $dv (@dv) {
+        $ass .= "${IND}${IND}$dv${AO}=>${AO}1,\n";
     }
+    $ass .= "${IND}},\n";
+
+    return($ass);
 }
 
 sub write_allow_rx {
     my $self = shift;
-    my $fh = shift;
 
-    if ( scalar( $self->values_allow_rx() ) ) {
-        my $an = $self->esc_aq( $self->get_attribute_name() );
-        my $dv = $self->esc_aq( sort( $self->values_allow_rx() ) );
-        $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}[${ACS}$dv${ACS}],
-EOF
-    }
+    scalar( $self->values_allow_rx() ) || return('');
+
+    my $an = $self->esc_aq( $self->get_attribute_name() );
+    my $dv = $self->esc_aq( sort( $self->values_allow_rx() ) );
+    return( "${IND}$an${AO}=>${AO}[${ACS}$dv${ACS}],\n" );
 }
 
 sub write_allow_value {
     my $self = shift;
     my $fh = shift;
 
-    if ( scalar( $self->values_allow_value() ) ) {
-        my $an = $self->esc_aq( $self->get_attribute_name() );
-        $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}{
-EOF
-        my @dv = sort( $self->esc_aq( $self->values_allow_value() ) );
-        foreach my $dv (@dv) {
-            $fh->print(<<EOF);
-${IND}${IND}$dv${AO}=>${AO}1,
-EOF
-        }
-        $fh->print(<<EOF);
-${IND}},
-EOF
+    scalar( $self->values_allow_value() ) || return('');
+
+    my $an = $self->esc_aq( $self->get_attribute_name() );
+    my @dv = sort( $self->esc_aq( $self->values_allow_value() ) );
+
+    my $ass = "${IND}$an${AO}=>${AO}{\n";
+    foreach my $dv (@dv) {
+        $ass .= "${IND}${IND}$dv${AO}=>${AO}1,\n";
     }
+    $ass .= "${IND}},\n";
 }
 
 sub write_default_value {
     my $self = shift;
     my $fh = shift;
 
-    defined( $self->get_default_value() ) || return;
+    defined( $self->get_default_value() ) || return('');
 
     my $an = $self->esc_aq( $self->get_attribute_name() );
     my $dv = $self->esc_aq( $self->get_default_value() );
-    $fh->print(<<EOF);
-${IND}$an${AO}=>${AO}$dv,
-EOF
+
+    return( "${IND}$an${AO}=>${AO}$dv,\n" );
 }
 
 sub write_doc_inherit_methods {
@@ -526,6 +531,8 @@ sub write_doc_init {
     my $self = shift;
     my $fh = shift;
 
+    $self->is_documented() || return;
+
     my $an = $self->get_attribute_name();
     my $mb = $self->get_method_base();
     my $mand = $self->is_mandatory() ? ' Mandatory option.' : '';
@@ -545,6 +552,8 @@ EOF
 sub write_doc_methods {
     my $self = shift;
     my $fh = shift;
+
+    $self->is_documented() || return;
 
     $self->write_set_doc($fh);
     $self->write_get_doc($fh);

@@ -1,17 +1,18 @@
 package PerlBean::Attribute::Multi::Ordered;
 
 use 5.005;
+use base qw( PerlBean::Attribute::Multi );
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-use base qw(PerlBean::Attribute::Multi);
-
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
-
+# Variable to not confuse AutoLoader
 our $SUB = 'sub';
+
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -63,6 +64,10 @@ Passed to L<set_attribute_name()>. Mandatory option.
 =item B<C<default_value>>
 
 Passed to L<set_default_value()>.
+
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
 
 =item B<C<exception_class>>
 
@@ -134,25 +139,25 @@ This method is inherited from package C<'PerlBean::Attribute'>. Calls C<get_pack
 
 This method is inherited from package C<'PerlBean::Attribute'>. Determins and returns the type of the attribute. The type is either C<BOOLEAN>, C<SINGLE> or C<MULTI>.
 
-=item write_allow_isa(FILEHANDLE)
+=item write_allow_isa()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_ISA> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_ISA> line string for the attribute.
 
-=item write_allow_ref(FILEHANDLE)
+=item write_allow_ref()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_REF> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_REF> line string for the attribute.
 
-=item write_allow_rx(FILEHANDLE)
+=item write_allow_rx()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_RX> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_RX> line string for the attribute.
 
-=item write_allow_value(FILEHANDLE)
+=item write_allow_value()
 
-This method is inherited from package C<'PerlBean::Attribute::Single'>. Writes C<%ALLOW_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Single'>. Returns a C<%ALLOW_VALUE> line string for the attribute.
 
-=item write_default_value(FILEHANDLE)
+=item write_default_value()
 
-This method is inherited from package C<'PerlBean::Attribute::Multi'>. Writes C<%DEFAULT_VALUE> line for the attribute. C<FILEHANDLE> is an C<IO::Handle> object.
+This method is inherited from package C<'PerlBean::Attribute::Multi'>. Returns a C<%DEFAULT_VALUE> line string for the attribute.
 
 =item write_doc_clauses(FILEHANDLE)
 
@@ -160,7 +165,7 @@ This method is inherited from package C<'PerlBean::Attribute'>. Writes documenta
 
 =item write_doc_inherit_methods(FILEHANDLE)
 
-This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute in the case the attibute methods are inherited. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<set_idx...>, B<set_num...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
 
 =item write_doc_init(FILEHANDLE)
 
@@ -168,11 +173,11 @@ This method is inherited from package C<'PerlBean::Attribute::Multi'>. Writes do
 
 =item write_doc_methods(FILEHANDLE)
 
-This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes documentation for the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<set_idx...>, B<set_num...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
 
 =item write_methods(FILEHANDLE)
 
-This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<setIdx...>, B<setNum...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
+This method is an implementation from package C<'PerlBean::Attribute::Multi'>. Writes the access methods for the attribute. C<FILEHANDLE> is an C<IO::Handle> object. Access methods are B<set...>, B<set_idx...>, B<set_num...>, B<push...>, B<pop...>, B<shift...>, B<unshift...>, B<exists...> and B<get...>.
 
 =item write_opt_init(FILEHANDLE)
 
@@ -191,6 +196,10 @@ set_attribute_name(), get_attribute_name()
 =item To access attribute named B<C<default_value>>:
 
 set_default_value(), get_default_value()
+
+=item To access attribute named B<C<documented>>:
+
+set_documented(), is_documented()
 
 =item To access attribute named B<C<exception_class>>:
 
@@ -253,9 +262,16 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -302,7 +318,7 @@ sub write_doc_inherit_methods {
     my $mb = $self->get_method_base();
 
     my @meth = ();
-    foreach my $lop ( qw(set setIdx setNum push pop shift unshift exists get) ) {
+    foreach my $lop ( qw(set set_idx set_num push pop shift unshift exists get) ) {
         my $op = &{$MOF}($lop);
         push( @meth, "$op$mb${BFP}()" );
     }
@@ -317,6 +333,8 @@ EOF
 sub write_doc_methods {
     my $self = shift;
     my $fh = shift;
+
+    $self->is_documented() || return;
 
     $self->write_set_doc($fh);
     $self->write_set_idx_doc($fh);
@@ -435,15 +453,15 @@ EOF
     # Check if index is a positive integer or zero
     $fh->print(<<EOF);
 ${IND}# Check if index is a positive integer or zero
-${IND}(${ACS}\$idx${AO}==${AO}int${BFP}(\$idx)${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::setIdx$mb, the specified index '\$idx' is not an integer.");
-${IND}(${ACS}\$idx${AO}>=${AO}0${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::setIdx$mb, the specified index '\$idx' is not a positive integer or zero.");
+${IND}(${ACS}\$idx${AO}==${AO}int${BFP}(\$idx)${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::set_idx$mb, the specified index '\$idx' is not an integer.");
+${IND}(${ACS}\$idx${AO}>=${AO}0${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::set_idx$mb, the specified index '\$idx' is not a positive integer or zero.");
 
 EOF
 
     # Check if isas/refs/rxs/values are allowed
     $fh->print(<<EOF);
 ${IND}# Check if isas/refs/rxs/values are allowed
-${IND}\&_value_is_allowed${BFP}(${ACS}$an_esc,${AC}\$val${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::setIdx$mb, one or more specified value(s) '\@_' is/are not allowed.");
+${IND}\&_value_is_allowed${BFP}(${ACS}$an_esc,${AC}\$val${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::set_idx$mb, one or more specified value(s) '\@_' is/are not allowed.");
 
 EOF
 
@@ -497,14 +515,14 @@ EOF
     # Check if index is an integer
     $fh->print(<<EOF);
 ${IND}# Check if index is an integer
-${IND}(${ACS}\$num${AO}==${AO}int${BFP}(\$num)${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::setNum$mb, the specified number '\$num' is not an integer.");
+${IND}(${ACS}\$num${AO}==${AO}int${BFP}(\$num)${ACS})${AO}||${AO}throw $ec${BFP}("ERROR: ${pkg}::set_num$mb, the specified number '\$num' is not an integer.");
 
 EOF
 
-    # Call setIdx$mb
+    # Call set_idx$mb
     $fh->print(<<EOF);
-${IND}# Call setIdx$mb
-${IND}\$self->setIdx$mb${BFP}(${ACS}\$num${AO}-${AO}1,${AC}@_${ACS});
+${IND}# Call set_idx$mb
+${IND}\$self->set_idx$mb${BFP}(${ACS}\$num${AO}-${AO}1,${AC}\@_${ACS});
 }
 EOF
 }
@@ -571,7 +589,7 @@ sub write_push_doc {
     my $exc = ' On error an exception C<' . $self->get_exception_class() . '> is thrown.';
 
     $fh->print(<<EOF);
-\=item $op${mb} (ARRAY)
+\=item $op${mb}${BFP}(ARRAY)
 
 Push additional values on ${desc}. C<ARRAY> is the list value.${exc}
 

@@ -3,28 +3,40 @@ package PerlBean::Method;
 use 5.005;
 use strict;
 use warnings;
-use Error qw(:try);
 use AutoLoader qw(AUTOLOAD);
+use Error qw(:try);
 use PerlBean::Style qw(:codegen);
 
-our ($VERSION) = '$Revision: 0.6 $' =~ /\$Revision:\s+([^\s]+)/;
+# Variable to not confuse AutoLoader
+our $SUB = 'sub';
 
+# Used by _value_is_allowed
 our %ALLOW_ISA = (
     'perl_bean' => [ 'PerlBean' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_REF = (
 );
+
+# Used by _value_is_allowed
 our %ALLOW_RX = (
     'body' => [ '.*' ],
     'method_name' => [ '^\w+$' ],
 );
+
+# Used by _value_is_allowed
 our %ALLOW_VALUE = (
 );
+
+# Used by _value_is_allowed
 our %DEFAULT_VALUE = (
+    'documented' => 1,
     'exception_class' => 'Error::Simple',
 );
 
-our $SUB = 'sub';
+# Package version
+our ($VERSION) = '$Revision: 0.7 $' =~ /\$Revision:\s+([^\s]+)/;
 
 1;
 
@@ -65,6 +77,10 @@ Passed to L<set_body()>.
 =item B<C<description>>
 
 Passed to L<set_description()>.
+
+=item B<C<documented>>
+
+Passed to L<set_documented()>. Defaults to B<1>.
 
 =item B<C<exception_class>>
 
@@ -137,6 +153,14 @@ Set the method description. C<VALUE> is the value. On error an exception C<Error
 =item get_description()
 
 Returns the method description.
+
+=item set_documented(VALUE)
+
+State that the method is documented. C<VALUE> is the value. Default value at initialization is C<1>. On error an exception C<Error::Simple> is thrown.
+
+=item is_documented()
+
+Returns whether the method is documented or not.
 
 =item set_exception_class(VALUE)
 
@@ -218,8 +242,15 @@ L<PerlBean::Attribute::Multi::Unique::Associative::MethodKey>,
 L<PerlBean::Attribute::Multi::Unique::Ordered>,
 L<PerlBean::Attribute::Single>,
 L<PerlBean::Collection>,
+L<PerlBean::Dependency>,
+L<PerlBean::Dependency::Import>,
+L<PerlBean::Dependency::Require>,
+L<PerlBean::Dependency::Use>,
+L<PerlBean::Described>,
+L<PerlBean::Described::ExportTag>,
 L<PerlBean::Method::Constructor>,
-L<PerlBean::Style>
+L<PerlBean::Style>,
+L<PerlBean::Symbol>
 
 =head1 BUGS
 
@@ -279,6 +310,9 @@ sub _initialize {
 
     # description, SINGLE
     exists( $opt->{description} ) && $self->set_description( $opt->{description} );
+
+    # documented, BOOLEAN, with default value
+    $self->set_documented( exists( $opt->{documented} ) ? $opt->{documented} : $DEFAULT_VALUE{documented} );
 
     # exception_class, SINGLE, with default value
     $self->set_exception_class( exists( $opt->{exception_class} ) ? $opt->{exception_class} : $DEFAULT_VALUE{exception_class} );
@@ -361,10 +395,12 @@ sub write_pod {
     my $fh = shift;
     my $pkg = shift;
 
+    $self->is_documented() || return;
+
     my $name = $self->get_method_name();
     my $pre = '';
     my $par = $self->get_parameter_description();
-    my $desc = $self->get_description();
+    my $desc = $self->get_description() || "\n";;
     if ( $pkg eq $self->get_package() ) {
         if ( $self->is_interface() ) {
             $pre = "This is an interface method. ";
@@ -444,6 +480,28 @@ sub get_description {
     defined( $super_meth ) && return( $super_meth->get_description() );
 
     return('');
+}
+
+sub set_documented {
+    my $self = shift;
+
+    if (shift) {
+        $self->{PerlBean_Method}{documented} = 1;
+    }
+    else {
+        $self->{PerlBean_Method}{documented} = 0;
+    }
+}
+
+sub is_documented {
+    my $self = shift;
+
+    if ( $self->{PerlBean_Method}{documented} ) {
+        return(1);
+    }
+    else {
+        return(0);
+    }
 }
 
 sub set_exception_class {
